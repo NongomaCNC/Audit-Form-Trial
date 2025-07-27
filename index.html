@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meter Data Capture PWA</title>
     
-    <!-- PWA Manifest and Meta Tags (Manifest is injected dynamically by script) -->
-    <link rel="manifest" id="manifest-link">
+    <!-- PWA Manifest and Meta Tags -->
+    <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="MeterApp">
-    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTIgMTkyIiB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiI+PHJlY3Qgd2lkdGg9IjE5MiIgaGVpZ2h0PSIxOTIiIGZpbGw9IiMwZDk0ODgiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9ImNlbnRyYWwiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iOTYiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmaWxsPSJ3aGl0ZSI+TTwvdGV4dD48L3N2Zz4=">
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9A%A1%3C/text%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    <link rel="icon" href="icons/icon-192x192.png" type="image/png">
     <meta name="theme-color" content="#0d9488">
 
     <!-- Tailwind CSS for modern styling -->
@@ -202,101 +202,10 @@
     </div>
 
     <script>
-        // --- PWA Setup: Manifest and Service Worker ---
-        // This runs immediately to set up the PWA fundamentals.
-
-        // 1. Dynamically create and inject the manifest
-        const manifest = {
-            "name": "Meter Data Capture",
-            "short_name": "MeterApp",
-            "description": "Offline-first PWA for capturing meter data securely.",
-            "start_url": ".",
-            "display": "standalone",
-            "background_color": "#f1f5f9", // Tailwind gray-100
-            "theme_color": "#0d9488", // Tailwind teal-600
-            "icons": [
-                {
-                    "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTIgMTkyIiB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiI+PHJlY3Qgd2lkdGg9IjE5MiIgaGVpZ2h0PSIxOTIiIGZpbGw9IiMwZDk0ODgiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9ImNlbnRyYWwiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iOTYiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmaWxsPSJ3aGl0ZSI+TTwvdGV4dD48L3N2Zz4=",
-                    "sizes": "192x192",
-                    "type": "image/svg+xml",
-                    "purpose": "any maskable"
-                },
-                {
-                    "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiI+PHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSIxMjgiIGZpbGw9IiMwZDk0ODgiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9ImNlbnRyYWwiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iMjU2IiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZmlsbD0id2hpdGUiPk08L3RleHQ+PC9zdmc+Cg==",
-                    "sizes": "512x512",
-                    "type": "image/svg+xml",
-                    "purpose": "any maskable"
-                }
-            ]
-        };
-        const manifestString = JSON.stringify(manifest);
-        const manifestUrl = 'data:application/manifest+json;base64,' + btoa(unescape(encodeURIComponent(manifestString)));
-        document.getElementById('manifest-link').setAttribute('href', manifestUrl);
-
-
-        // 2. Create Service Worker from a string and register it
+        // --- Service Worker Registration ---
         if ('serviceWorker' in navigator) {
-            const swCode = `
-                const CACHE_NAME = 'field-data-capture-v2';
-                const urlsToCache = [
-                    'https://cdn.tailwindcss.com',
-                    'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js',
-                    'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'
-                ];
-
-                self.addEventListener('install', (event) => {
-                    event.waitUntil(
-                        caches.open(CACHE_NAME).then((cache) => {
-                            console.log('[Service Worker] Caching essential external assets');
-                            return cache.addAll(urlsToCache);
-                        }).catch(err => {
-                            console.error('[Service Worker] Caching failed during install:', err);
-                        })
-                    );
-                });
-
-                self.addEventListener('activate', (event) => {
-                    event.waitUntil(
-                        caches.keys().then((cacheNames) => {
-                            return Promise.all(
-                                cacheNames.map((cacheName) => {
-                                    if (cacheName !== CACHE_NAME) {
-                                        console.log('[Service Worker] Deleting old cache:', cacheName);
-                                        return caches.delete(cacheName);
-                                    }
-                                })
-                            );
-                        }).then(() => self.clients.claim())
-                    );
-                });
-
-                self.addEventListener('fetch', (event) => {
-                    event.respondWith(
-                        caches.match(event.request).then((response) => {
-                            if (response) {
-                                return response;
-                            }
-                            return fetch(event.request).then((fetchResponse) => {
-                                if (!fetchResponse || fetchResponse.status !== 200 || (fetchResponse.type !== 'basic' && fetchResponse.type !== 'cors')) {
-                                    return fetchResponse;
-                                }
-
-                                const responseToCache = fetchResponse.clone();
-                                caches.open(CACHE_NAME).then((cache) => {
-                                    cache.put(event.request, responseToCache);
-                                });
-                                return fetchResponse;
-                            });
-                        })
-                    );
-                });
-            `;
-            
-            // Create a data URL from the service worker code to avoid blob protocol issues.
-            const swDataUrl = 'data:application/javascript;base64,' + btoa(swCode);
-
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register(swDataUrl)
+                navigator.serviceWorker.register('service-worker.js')
                     .then(registration => console.log('Service Worker registered! Scope:', registration.scope))
                     .catch(err => console.error('Service Worker registration failed:', err));
             });
@@ -815,7 +724,15 @@
             document.getElementById('exportEmail').addEventListener('click', () => {
                 const subject = encodeURIComponent(`Meter Data Export: ${currentExportFile.fileName}`);
                 const body = encodeURIComponent(`Hello,\n\nThe meter data export named "${currentExportFile.fileName}" is ready.\n\nPlease download the file from the app to view the data.\n\nThank you.`);
-                window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
+                
+                // Create an anchor element to trigger the mail client more reliably
+                const mailtoLink = document.createElement('a');
+                mailtoLink.href = `mailto:?subject=${subject}&body=${body}`;
+                
+                // Append to body to make it clickable, then click, then remove
+                document.body.appendChild(mailtoLink);
+                mailtoLink.click();
+                document.body.removeChild(mailtoLink);
             });
         }
         

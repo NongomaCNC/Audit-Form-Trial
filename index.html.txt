@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meter Data Capture PWA</title>
+    
+    <!-- PWA Manifest and Meta Tags (Manifest is injected dynamically by script) -->
+    <link rel="manifest" id="manifest-link">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="MeterApp">
+    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTIgMTkyIiB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiI+PHJlY3Qgd2lkdGg9IjE5MiIgaGVpZ2h0PSIxOTIiIGZpbGw9IiMwZDk0ODgiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9ImNlbnRyYWwiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iOTYiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmaWxsPSJ3aGl0ZSI+TTwvdGV4dD48L3N2Zz4=">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9A%A1%3C/text%3E%3C/svg%3E">
+    <meta name="theme-color" content="#0d9488">
+
+    <!-- Tailwind CSS for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- SheetJS for Excel Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+    
+    <!-- Custom Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Custom styles to complement Tailwind */
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent; /* Disable tap highlight on mobile */
+        }
+
+        /* Custom styling for form inputs for a consistent look */
+        .form-input {
+            @apply w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition duration-150 ease-in-out;
+        }
+        
+        /* Styling for the custom modal */
+        .modal-backdrop {
+            @apply fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 transition-opacity duration-300;
+        }
+
+        .modal-content {
+            @apply bg-white rounded-lg shadow-2xl p-6 m-4 max-w-sm w-full transform transition-transform duration-300 scale-95;
+        }
+
+        .modal-title {
+            @apply text-xl font-bold text-gray-800 mb-4;
+        }
+
+        .modal-body {
+            @apply text-gray-600 mb-6;
+        }
+        
+        .modal-buttons button {
+            @apply px-4 py-2 rounded-md font-semibold transition duration-150 ease-in-out;
+        }
+        
+        .modal-confirm-btn {
+            @apply bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500;
+        }
+
+        .modal-cancel-btn {
+            @apply bg-gray-200 text-gray-800 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400;
+        }
+
+        /* Responsive table styling */
+        .table-container {
+            width: 100%;
+            overflow-x: auto; /* Allows horizontal scrolling on small screens */
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+        }
+        
+        /* Custom scrollbar for better aesthetics */
+        .table-container::-webkit-scrollbar {
+            height: 8px;
+        }
+        .table-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        .table-container::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        .table-container::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <!-- Login Screen -->
+    <div id="login-screen" class="fixed inset-0 bg-gray-200 z-50 flex items-center justify-center p-4">
+        <div class="w-full max-w-sm bg-white p-8 rounded-xl shadow-lg">
+            <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Enter Access Code</h2>
+            <form id="login-form">
+                <div class="mb-4">
+                    <input type="password" id="access-code" class="form-input text-center text-lg tracking-widest" placeholder="••••••">
+                </div>
+                <p id="login-error" class="text-red-500 text-sm text-center mb-4 h-5"></p>
+                <button type="submit" class="w-full px-6 py-3 bg-teal-600 text-white font-semibold rounded-md hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition">
+                    Login
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Application Wrapper -->
+    <div id="main-app" class="hidden">
+        <header class="bg-teal-600 shadow-md">
+            <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
+                <h1 class="text-2xl font-bold text-white tracking-tight">Meter Data Capture</h1>
+            </div>
+        </header>
+
+        <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+            <!-- Data Entry Form -->
+            <div class="bg-white p-6 rounded-lg shadow-lg mb-8">
+                <form id="dataForm">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                        <!-- Form fields will be dynamically inserted here by JavaScript -->
+                    </div>
+                    <div class="mt-8 flex justify-end space-x-4">
+                        <button type="reset" class="px-6 py-2 bg-gray-200 text-gray-800 font-semibold rounded-md hover:bg-gray-300 transition">Clear Form</button>
+                        <button type="submit" class="px-6 py-2 bg-teal-600 text-white font-semibold rounded-md hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition">Add Entry</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Action Toolbar -->
+            <div class="bg-white p-4 rounded-lg shadow-lg mb-8 flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+                <button class="w-full sm:w-auto px-5 py-2.5 bg-green-600 text-white font-semibold rounded-md hover:bg-green-700 transition flex items-center justify-center space-x-2" onclick="prepareAndShowExportOptions()">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
+                    <span>Export & Share...</span>
+                </button>
+                <button class="w-full sm:w-auto px-5 py-2.5 bg-red-600 text-white font-semibold rounded-md hover:bg-red-700 transition flex items-center justify-center space-x-2" onclick="confirmClearAllData()">
+                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>
+                    <span>Clear All Data</span>
+                </button>
+            </div>
+
+            <!-- Data Table -->
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                <div id="tableContainer" class="table-container">
+                    <!-- Table will be rendered here -->
+                </div>
+            </div>
+        </main>
+
+        <!-- Floating Action Button for GPS -->
+        <button onclick="getGPSLocation()" class="fixed bottom-6 right-6 bg-blue-600 text-white w-16 h-16 rounded-full shadow-lg flex items-center justify-center hover:bg-blue-700 transition transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg>
+        </button>
+    </div>
+    
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed top-5 right-5 bg-gray-800 text-white px-6 py-3 rounded-lg shadow-lg opacity-0 transform -translate-y-10 transition-all duration-300 z-50">
+        <p id="toast-message"></p>
+    </div>
+
+    <!-- Custom Modal for Confirmations -->
+    <div id="customModal" class="modal-backdrop opacity-0 pointer-events-none">
+        <div class="modal-content scale-95">
+            <h3 id="modalTitle" class="modal-title">Confirmation</h3>
+            <p id="modalBody" class="modal-body">Are you sure?</p>
+            <div id="modalButtons" class="flex justify-end space-x-4 modal-buttons">
+                <!-- Buttons will be added dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Options Modal -->
+    <div id="exportOptionsModal" class="modal-backdrop opacity-0 pointer-events-none">
+        <div class="modal-content scale-95">
+            <h3 class="modal-title">Export Options</h3>
+            <div class="space-y-3">
+                <button id="exportShare" class="w-full px-4 py-3 bg-teal-600 text-white font-semibold rounded-md hover:bg-teal-700 transition flex items-center justify-center space-x-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" /></svg>
+                    <span>Share File (Recommended)</span>
+                </button>
+                <button id="exportDownload" class="w-full px-4 py-3 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 transition flex items-center justify-center space-x-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 9.293a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                    <span>Download File</span>
+                </button>
+                <div class="text-center text-xs text-gray-500 pt-2">Or notify via...</div>
+                <button id="exportWhatsApp" class="w-full px-4 py-3 bg-green-500 text-white font-semibold rounded-md hover:bg-green-600 transition flex items-center justify-center space-x-2">
+                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.894 11.892-1.99 0-3.903-.52-5.687-1.475L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.886-.001 2.267.655 4.398 1.908 6.161l-1.317 4.834 4.92-1.305z"/></svg>
+                    <span>WhatsApp (Message Only)</span>
+                </button>
+                 <button id="exportEmail" class="w-full px-4 py-3 bg-gray-600 text-white font-semibold rounded-md hover:bg-gray-700 transition flex items-center justify-center space-x-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" /><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" /></svg>
+                    <span>Email (Message Only)</span>
+                </button>
+            </div>
+             <div class="mt-6 text-center">
+                <button onclick="hideModal('exportOptionsModal')" class="modal-cancel-btn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- PWA Setup: Manifest and Service Worker ---
+        // This runs immediately to set up the PWA fundamentals.
+
+        // 1. Dynamically create and inject the manifest
+        const manifest = {
+            "name": "Meter Data Capture",
+            "short_name": "MeterApp",
+            "description": "Offline-first PWA for capturing meter data securely.",
+            "start_url": ".",
+            "display": "standalone",
+            "background_color": "#f1f5f9", // Tailwind gray-100
+            "theme_color": "#0d9488", // Tailwind teal-600
+            "icons": [
+                {
+                    "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTIgMTkyIiB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiI+PHJlY3Qgd2lkdGg9IjE5MiIgaGVpZ2h0PSIxOTIiIGZpbGw9IiMwZDk0ODgiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9ImNlbnRyYWwiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iOTYiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmaWxsPSJ3aGl0ZSI+TTwvdGV4dD48L3N2Zz4=",
+                    "sizes": "192x192",
+                    "type": "image/svg+xml",
+                    "purpose": "any maskable"
+                },
+                {
+                    "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiI+PHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSIxMjgiIGZpbGw9IiMwZDk0ODgiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9ImNlbnRyYWwiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iMjU2IiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZmlsbD0id2hpdGUiPk08L3RleHQ+PC9zdmc+Cg==",
+                    "sizes": "512x512",
+                    "type": "image/svg+xml",
+                    "purpose": "any maskable"
+                }
+            ]
+        };
+        const manifestString = JSON.stringify(manifest);
+        const manifestUrl = 'data:application/manifest+json;base64,' + btoa(unescape(encodeURIComponent(manifestString)));
+        document.getElementById('manifest-link').setAttribute('href', manifestUrl);
+
+
+        // 2. Create Service Worker from a string and register it
+        if ('serviceWorker' in navigator) {
+            const swCode = `
+                const CACHE_NAME = 'field-data-capture-v2';
+                const urlsToCache = [
+                    'https://cdn.tailwindcss.com',
+                    'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js',
+                    'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'
+                ];
+
+                self.addEventListener('install', (event) => {
+                    event.waitUntil(
+                        caches.open(CACHE_NAME).then((cache) => {
+                            console.log('[Service Worker] Caching essential external assets');
+                            return cache.addAll(urlsToCache);
+                        }).catch(err => {
+                            console.error('[Service Worker] Caching failed during install:', err);
+                        })
+                    );
+                });
+
+                self.addEventListener('activate', (event) => {
+                    event.waitUntil(
+                        caches.keys().then((cacheNames) => {
+                            return Promise.all(
+                                cacheNames.map((cacheName) => {
+                                    if (cacheName !== CACHE_NAME) {
+                                        console.log('[Service Worker] Deleting old cache:', cacheName);
+                                        return caches.delete(cacheName);
+                                    }
+                                })
+                            );
+                        }).then(() => self.clients.claim())
+                    );
+                });
+
+                self.addEventListener('fetch', (event) => {
+                    event.respondWith(
+                        caches.match(event.request).then((response) => {
+                            if (response) {
+                                return response;
+                            }
+                            return fetch(event.request).then((fetchResponse) => {
+                                if (!fetchResponse || fetchResponse.status !== 200 || (fetchResponse.type !== 'basic' && fetchResponse.type !== 'cors')) {
+                                    return fetchResponse;
+                                }
+
+                                const responseToCache = fetchResponse.clone();
+                                caches.open(CACHE_NAME).then((cache) => {
+                                    cache.put(event.request, responseToCache);
+                                });
+                                return fetchResponse;
+                            });
+                        })
+                    );
+                });
+            `;
+            
+            // Create a data URL from the service worker code to avoid blob protocol issues.
+            const swDataUrl = 'data:application/javascript;base64,' + btoa(swCode);
+
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register(swDataUrl)
+                    .then(registration => console.log('Service Worker registered! Scope:', registration.scope))
+                    .catch(err => console.error('Service Worker registration failed:', err));
+            });
+        }
+        
+        // --- IndexedDB & Crypto Setup ---
+        const DB_NAME = 'MeterDataDB_Secure';
+        const DB_VERSION = 1;
+        const STORE_NAME = 'meterReadings';
+        const KEY_STORE_NAME = 'appKeys';
+        let db;
+        let encryptionKey;
+        let currentExportFile = { blob: null, fileName: null }; // To hold the generated file for modals
+
+        // --- Field Definitions ---
+        const fields = [
+            { name: "Workorder No", type: "text" }, { name: "Zone", type: "text" }, { name: "Sector", type: "text" }, { name: "CNC", type: "text", required: true },
+            { name: "Contractor Name or Source", type: "text" }, { name: "Date", type: "date" }, { name: "Feeder Name", type: "text" }, { name: "Township Name", type: "text" },
+            { name: "Transformer No", type: "text", required: true }, { name: "Stand No", type: "text" }, { name: "Installation No", type: "text" },
+            { name: "Latitude", type: "text", readonly: true }, { name: "Longitude", type: "text", readonly: true },
+            { name: "Access", type: "select", options: ["Yes", "No"] }, { name: "At Home", type: "select", options: ["Yes", "No"] },
+            { name: "Connected", type: "select", options: ["Yes", "No"] }, { name: "Abandoned", type: "select", options: ["Yes", "No"] },
+            { name: "Vandalised", type: "select", options: ["Yes", "No"] }, { name: "Illegal", type: "select", options: ["Yes", "No"] },
+            { name: "Owner", type: "select", options: ["Yes", "No"] }, { name: "Surname", type: "text" }, { name: "Name", type: "text" },
+            { name: "ID No", type: "text" }, { name: "Phone Code", type: "text" }, { name: "Phone No", type: "tel" },
+            { name: "Normal Vendor", type: "select", options: ["Yes", "No"] }, { name: "Most Recent Vendor", type: "text" }, { name: "Meter No", type: "text" },
+            { name: "Split", type: "select", options: ["Yes", "No"] }, { name: "Common or Non Common Base Meter", type: "text" }, { name: "ED/ECU", type: "text" },
+            { name: "Meter Type", type: "text" }, { name: "Tariff Code", type: "text" }, { name: "Amp Limit", type: "text" }, { name: "Supply Group Code", type: "text" },
+            { name: "Mag card/Keypad", type: "select", options: ["Mag card", "Keypad"] }, { name: "STS or Prop", type: "text", readonly: true }, { name: "Tampered", type: "select", options: ["Yes", "No"] },
+            { name: "Tamper Method", type: "text" }, { name: "Removed", type: "select", options: ["Yes", "No"] },
+            { name: "Card Trip", type: "select", options: ["Pass", "Fail"] }, { name: "E/L Test", type: "select", options: ["Pass", "Fail"] },
+            { name: "Meter Faulty", type: "select", options: ["Yes", "No"] }, { name: "Replaced", type: "select", options: ["Yes", "No"] },
+            { name: "MMF No", type: "text" }, { name: "New Meter No", type: "text" }, { name: "New Meter Type", type: "text" }, { name: "New Meter Amp Limit", type: "text" },
+            { name: "New Meter Card Trip", type: "select", options: ["Pass", "Fail"] }, { name: "New Meter E/L Test", type: "select", options: ["Pass", "Fail"] },
+            { name: "Sealed", type: "select", options: ["Yes", "No"] }, { name: "Seal No", type: "text" },
+            { name: "Remarks", type: "textarea", fullWidth: true }
+        ];
+        const SENSITIVE_FIELDS = ["Surname", "Name", "ID No", "Phone No"];
+
+        // --- UI Element References ---
+        const loginScreen = document.getElementById('login-screen');
+        const mainApp = document.getElementById('main-app');
+        const loginForm = document.getElementById('login-form');
+        const accessCodeInput = document.getElementById('access-code');
+        const loginError = document.getElementById('login-error');
+        const dataForm = document.getElementById('dataForm');
+        const formGrid = dataForm.querySelector('.grid');
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toast-message');
+        const tableContainer = document.getElementById('tableContainer');
+
+        // --- Core Application Logic ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check login status first
+            checkLoginStatus();
+        });
+
+        function checkLoginStatus() {
+            const ACCESS_CODE = 'PWA2025'; // Your secret code
+            
+            if (localStorage.getItem('isLoggedIn') === 'true') {
+                showMainApp();
+            } else {
+                loginScreen.classList.remove('hidden');
+                mainApp.classList.add('hidden');
+            }
+
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                loginError.textContent = '';
+                if (accessCodeInput.value === ACCESS_CODE) {
+                    localStorage.setItem('isLoggedIn', 'true');
+                    showMainApp();
+                } else {
+                    loginError.textContent = 'Invalid access code. Please try again.';
+                    accessCodeInput.value = '';
+                }
+            });
+        }
+
+        async function showMainApp() {
+            loginScreen.classList.add('hidden');
+            mainApp.classList.remove('hidden');
+
+            // Initialize the rest of the app now that the user is logged in
+            generateForm();
+            setupConditionalValidation();
+            await initDb();
+            await renderTable();
+            setupExportButtonListeners();
+        }
+
+        function generateForm() {
+            let formHTML = '';
+            fields.forEach(field => {
+                const requiredAttr = field.required ? 'required' : '';
+                const readonlyAttr = field.readonly ? 'readonly' : '';
+                const fullWidthClass = field.fullWidth ? 'sm:col-span-2 md:col-span-3 lg:col-span-4' : '';
+
+                let inputHTML = '';
+                switch (field.type) {
+                    case 'select':
+                        const optionsHTML = field.options.map(opt => `<option value="${opt}">${opt}</option>`).join('');
+                        inputHTML = `<select name="${field.name}" class="form-input" ${requiredAttr}>
+                                        <option value="">-- Select --</option>
+                                        ${optionsHTML}
+                                     </select>`;
+                        break;
+                    case 'textarea':
+                         inputHTML = `<textarea name="${field.name}" class="form-input" rows="3" ${requiredAttr}></textarea>`;
+                        break;
+                    default:
+                        inputHTML = `<input type="${field.type}" name="${field.name}" class="form-input" ${requiredAttr} ${readonlyAttr}>`;
+                }
+
+                formHTML += `
+                    <div class="flex flex-col space-y-1 ${fullWidthClass}">
+                        <label for="${field.name}" class="text-sm font-medium text-gray-700">${field.name}${field.required ? '<span class="text-red-500">*</span>' : ''}</label>
+                        ${inputHTML}
+                    </div>
+                `;
+            });
+            formGrid.innerHTML = formHTML;
+        }
+        
+        function setupConditionalValidation() {
+            // Helper to toggle validation state on a field
+            const toggleFieldRequirement = (fieldName, isRequired) => {
+                const input = document.querySelector(`[name="${fieldName}"]`);
+                if (!input) return;
+                
+                const label = input.closest('.flex-col').querySelector('label');
+                // Use a unique class for each field's asterisk to prevent conflicts
+                const asteriskClassName = `conditional-asterisk-${fieldName.replace(/[^a-zA-Z0-9]/g, '')}`;
+                let asterisk = label.querySelector(`.${asteriskClassName}`);
+
+                if (isRequired) {
+                    input.required = true;
+                    if (!asterisk) {
+                        const newAsterisk = document.createElement('span');
+                        newAsterisk.className = `text-red-500 conditional-asterisk ${asteriskClassName}`;
+                        newAsterisk.textContent = ' *'; // Add space for better looks
+                        label.appendChild(newAsterisk);
+                    }
+                } else {
+                    // Only remove requirement if it's not a statically required field from the 'fields' array
+                    const isStaticallyRequired = fields.find(f => f.name === fieldName)?.required;
+                    if (!isStaticallyRequired) {
+                        input.required = false;
+                    }
+                    if (asterisk) {
+                        asterisk.remove();
+                    }
+                }
+            };
+
+            // Rule Set 1: Access, At Home, Connected
+            const updateAccessConnectedValidation = () => {
+                const isRequired = ['Access', 'At Home', 'Connected'].every(name => document.querySelector(`[name="${name}"]`).value === 'Yes');
+                ['Latitude', 'Longitude', 'Phone No', 'Meter No', 'ED/ECU', 'Sealed'].forEach(name => toggleFieldRequirement(name, isRequired));
+            };
+
+            // Rule Set 2: Tampered
+            const updateTamperedValidation = () => {
+                const isRequired = document.querySelector('[name="Tampered"]').value === 'Yes';
+                ['Tamper Method', 'Removed'].forEach(name => toggleFieldRequirement(name, isRequired));
+            };
+
+            // Rule Set 3: Meter Faulty
+            const updateMeterFaultyValidation = () => {
+                const isRequired = document.querySelector('[name="Meter Faulty"]').value === 'No';
+                ['Card Trip', 'E/L Test'].forEach(name => toggleFieldRequirement(name, isRequired));
+            };
+
+            // Rule Set 4: Replaced
+            const updateReplacedValidation = () => {
+                const isRequired = document.querySelector('[name="Replaced"]').value === 'Yes';
+                ['MMF No', 'New Meter No', 'New Meter Type', 'New Meter Amp Limit'].forEach(name => toggleFieldRequirement(name, isRequired));
+            };
+
+            // Rule set 5: Mag card/Keypad auto-population
+            const updateStsPropAutoPopulation = () => {
+                const magCardKeypad = document.querySelector('[name="Mag card/Keypad"]');
+                const stsOrProp = document.querySelector('[name="STS or Prop"]');
+                if (magCardKeypad.value === 'Mag card') {
+                    stsOrProp.value = 'Prop';
+                } else if (magCardKeypad.value === 'Keypad') {
+                    stsOrProp.value = 'STS';
+                } else {
+                    stsOrProp.value = '';
+                }
+            };
+
+             // Rule Set 6: Owner
+            const updateOwnerValidation = () => {
+                const isRequired = document.querySelector('[name="Owner"]').value === 'Yes';
+                toggleFieldRequirement('ID No', isRequired);
+            };
+
+            const allValidationUpdaters = [
+                updateAccessConnectedValidation,
+                updateTamperedValidation,
+                updateMeterFaultyValidation,
+                updateReplacedValidation,
+                updateStsPropAutoPopulation,
+                updateOwnerValidation
+            ];
+
+            // Attach listeners
+            ['Access', 'At Home', 'Connected'].forEach(name => document.querySelector(`[name="${name}"]`).addEventListener('change', updateAccessConnectedValidation));
+            document.querySelector('[name="Tampered"]').addEventListener('change', updateTamperedValidation);
+            document.querySelector('[name="Meter Faulty"]').addEventListener('change', updateMeterFaultyValidation);
+            document.querySelector('[name="Replaced"]').addEventListener('change', updateReplacedValidation);
+            document.querySelector('[name="Mag card/Keypad"]').addEventListener('change', updateStsPropAutoPopulation);
+            document.querySelector('[name="Owner"]').addEventListener('change', updateOwnerValidation);
+
+            // Run all validation checks on load to set the initial state correctly
+            allValidationUpdaters.forEach(updater => updater());
+
+            // Also update on form reset
+            dataForm.addEventListener('reset', () => {
+                // Use a timeout to allow the form fields to reset before re-validating
+                setTimeout(() => allValidationUpdaters.forEach(updater => updater()), 0);
+            });
+        }
+
+        async function initDb() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                request.onupgradeneeded = event => {
+                    db = event.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+                    }
+                    if (!db.objectStoreNames.contains(KEY_STORE_NAME)) {
+                        db.createObjectStore(KEY_STORE_NAME, { keyPath: 'name' });
+                    }
+                };
+                request.onsuccess = async event => {
+                    db = event.target.result;
+                    console.log('IndexedDB opened successfully.');
+                    try {
+                        encryptionKey = await getOrCreateEncryptionKey();
+                        resolve();
+                    } catch (error) {
+                        console.error("Failed to get/create encryption key:", error);
+                        showToast('Error initializing encryption. Data may not be secure.', 'error');
+                        reject(error);
+                    }
+                };
+                request.onerror = event => {
+                    console.error('IndexedDB error:', event.target.error);
+                    showToast('Error opening database.', 'error');
+                    reject(event.target.error);
+                };
+            });
+        }
+
+        async function getOrCreateEncryptionKey() {
+            const tx = db.transaction(KEY_STORE_NAME, 'readonly');
+            const store = tx.objectStore(KEY_STORE_NAME);
+            const getRequest = store.get('aes-gcm-key');
+
+            return new Promise((resolve, reject) => {
+                getRequest.onsuccess = async event => {
+                    let key = event.target.result?.value;
+                    if (key) {
+                        resolve(key);
+                    } else {
+                        key = await crypto.subtle.generateKey(
+                            { name: 'AES-GCM', length: 256 },
+                            false, 
+                            ['encrypt', 'decrypt']
+                        );
+                        const writeTx = db.transaction(KEY_STORE_NAME, 'readwrite');
+                        writeTx.objectStore(KEY_STORE_NAME).put({ name: 'aes-gcm-key', value: key });
+                        resolve(key);
+                    }
+                };
+                getRequest.onerror = err => reject(err);
+            });
+        }
+
+        async function encryptData(data) {
+            if (!encryptionKey) throw new Error("Encryption key not available.");
+            const iv = crypto.getRandomValues(new Uint8Array(12));
+            const encrypted = await crypto.subtle.encrypt(
+                { name: "AES-GCM", iv: iv },
+                encryptionKey,
+                new TextEncoder().encode(data)
+            );
+            return { encryptedData: Array.from(new Uint8Array(encrypted)), iv: Array.from(iv) };
+        }
+
+        async function decryptData(encryptedObj) {
+            if (!encryptionKey) throw new Error("Encryption key not available.");
+            if (!encryptedObj?.encryptedData || !encryptedObj?.iv) return "[Encrypted]";
+            const decrypted = await crypto.subtle.decrypt(
+                { name: "AES-GCM", iv: new Uint8Array(encryptedObj.iv) },
+                encryptionKey,
+                new Uint8Array(encryptedObj.encryptedData)
+            );
+            return new TextDecoder().decode(decrypted);
+        }
+
+        function showToast(message, type = 'success', duration = 3000) {
+            toastMessage.textContent = message;
+            toast.className = `fixed top-5 right-5 text-white px-6 py-3 rounded-lg shadow-lg opacity-100 transform translate-y-0 transition-all duration-300 z-50 ${type === 'error' ? 'bg-red-600' : 'bg-blue-600'}`;
+            if (duration > 0) {
+                setTimeout(() => {
+                    toast.className = toast.className.replace('opacity-100 translate-y-0', 'opacity-0 -translate-y-10');
+                }, duration);
+            }
+        }
+        
+        function hideToast() {
+            toast.className = toast.className.replace('opacity-100 translate-y-0', 'opacity-0 -translate-y-10');
+        }
+
+        function showModal(modalId, title, body) {
+            const modal = document.getElementById(modalId);
+            if (title) modal.querySelector('.modal-title').textContent = title;
+            if (body) modal.querySelector('.modal-body').textContent = body;
+            
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.querySelector('.modal-content').classList.remove('scale-95');
+        }
+
+        function hideModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modal.querySelector('.modal-content').classList.add('scale-95');
+        }
+
+        function toDMS(coord, type) {
+            const absolute = Math.abs(coord);
+            const degrees = Math.floor(absolute);
+            const minutesNotTruncated = (absolute - degrees) * 60;
+            const minutes = Math.floor(minutesNotTruncated);
+            const seconds = ((minutesNotTruncated - minutes) * 60).toFixed(3);
+
+            // Determine direction based on type. For South Africa, Lat is S, Lon is E.
+            const direction = type === 'lat' ? 'S' : 'E';
+
+            return `${String(degrees).padStart(2, '0')} ${String(minutes).padStart(2, '0')} ${seconds} ${direction}`;
+        }
+
+        async function getGPSLocation() {
+            const latInput = document.querySelector('[name="Latitude"]');
+            const lonInput = document.querySelector('[name="Longitude"]');
+            if(!latInput || !lonInput) return;
+
+            latInput.value = 'Getting...';
+            lonInput.value = 'Getting...';
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        latInput.value = toDMS(position.coords.latitude, 'lat');
+                        lonInput.value = toDMS(position.coords.longitude, 'lon');
+                        showToast('GPS coordinates obtained!');
+                    },
+                    (error) => {
+                        latInput.value = '';
+                        lonInput.value = '';
+                        showToast(`Error getting GPS: ${error.message}`, 'error');
+                    },
+                    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+                );
+            } else {
+                latInput.value = '';
+                lonInput.value = '';
+                showToast('Geolocation is not supported.', 'error');
+            }
+        }
+
+        dataForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const formData = new FormData(dataForm);
+            let rowData = {};
+
+            for (const field of fields) {
+                rowData[field.name] = formData.get(field.name) || "";
+            }
+
+            for (const sensitiveField of SENSITIVE_FIELDS) {
+                if (rowData[sensitiveField]) {
+                    rowData[sensitiveField] = await encryptData(rowData[sensitiveField]);
+                }
+            }
+
+            const transaction = db.transaction([STORE_NAME], 'readwrite');
+            transaction.objectStore(STORE_NAME).add(rowData).onsuccess = () => {
+                showToast('Data saved successfully!');
+                dataForm.reset();
+                renderTable();
+            };
+        });
+
+        async function renderTable() {
+            const transaction = db.transaction([STORE_NAME], 'readonly');
+            const allData = await new Promise(resolve => transaction.objectStore(STORE_NAME).getAll().onsuccess = e => resolve(e.target.result));
+
+            if (allData.length === 0) {
+                tableContainer.innerHTML = `<p class="text-center text-gray-500 py-8">No data captured yet.</p>`;
+                return;
+            }
+            
+            const headers = fields.map(f => f.name);
+            let tableHTML = `<table class="min-w-full divide-y divide-gray-200"><thead class="bg-gray-50"><tr>`;
+            headers.forEach(h => tableHTML += `<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">${h}</th>`);
+            tableHTML += `<th scope="col" class="relative px-6 py-3"><span class="sr-only">Actions</span></th></tr></thead><tbody class="bg-white divide-y divide-gray-200">`;
+
+            for (const entry of allData) {
+                tableHTML += `<tr data-id="${entry.id}">`;
+                for (const fieldName of headers) {
+                    let value = entry[fieldName];
+                    if (SENSITIVE_FIELDS.includes(fieldName) && value) {
+                        value = await decryptData(value);
+                    }
+                    tableHTML += `<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${value || ''}</td>`;
+                }
+                tableHTML += `<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <button onclick="confirmDeleteEntry(${entry.id})" class="text-red-600 hover:text-red-900">Delete</button>
+                              </td></tr>`;
+            }
+            tableHTML += `</tbody></table>`;
+            tableContainer.innerHTML = tableHTML;
+        }
+        
+        function confirmDeleteEntry(id) {
+            const modal = document.getElementById('customModal');
+            const buttonsContainer = document.getElementById('modalButtons');
+            buttonsContainer.innerHTML = `
+                <button onclick="hideModal('customModal')" class="modal-cancel-btn">Cancel</button>
+                <button onclick="deleteEntry(${id})" class="modal-confirm-btn">Confirm Delete</button>
+            `;
+            showModal('customModal', 'Delete Entry', 'Are you sure you want to delete this entry? This action cannot be undone.');
+        }
+
+        function deleteEntry(id) {
+            db.transaction([STORE_NAME], 'readwrite').objectStore(STORE_NAME).delete(id).onsuccess = () => {
+                showToast('Entry deleted.');
+                renderTable();
+            };
+            hideModal('customModal');
+        }
+
+        // --- EXPORT AND SHARE LOGIC ---
+        
+        async function generateExcelBlob() {
+            const allData = await new Promise(resolve => db.transaction([STORE_NAME], 'readonly').objectStore(STORE_NAME).getAll().onsuccess = e => resolve(e.target.result));
+            if (allData.length === 0) {
+                showToast('No data to export.', 'error');
+                return null;
+            }
+            const dataForExcel = await Promise.all(allData.map(async entry => {
+                const decryptedEntry = {};
+                for (const field of fields.map(f => f.name)) {
+                    let value = entry[field];
+                    if (SENSITIVE_FIELDS.includes(field) && value) {
+                        try { decryptedEntry[field] = await decryptData(value); } catch { decryptedEntry[field] = '[DECRYPTION FAILED]'; }
+                    } else { decryptedEntry[field] = value || ''; }
+                }
+                return decryptedEntry;
+            }));
+            const worksheet = XLSX.utils.json_to_sheet(dataForExcel, { header: fields.map(f => f.name) });
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Meter Data');
+            const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+            const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const fileName = `Meter_Data_${new Date().toISOString().split('T')[0]}.xlsx`;
+            return { blob, fileName };
+        }
+
+        async function prepareAndShowExportOptions() {
+            showToast('Preparing file...', 'info', 0); // Show indefinite toast
+            currentExportFile = await generateExcelBlob();
+            hideToast();
+            if (currentExportFile) {
+                showModal('exportOptionsModal');
+            }
+        }
+
+        function setupExportButtonListeners() {
+            document.getElementById('exportShare').addEventListener('click', async () => {
+                const { blob, fileName } = currentExportFile;
+                const file = new File([blob], fileName, { type: blob.type });
+                if (navigator.share && navigator.canShare({ files: [file] })) {
+                    try {
+                        await navigator.share({ files: [file], title: 'Meter Data Export', text: 'Meter data attached.' });
+                        showToast('File shared successfully!');
+                    } catch (error) { if (error.name !== 'AbortError') { showToast('Error sharing file.', 'error'); } }
+                } else {
+                    showToast('Web Share not supported. Try downloading.', 'error');
+                }
+            });
+
+            document.getElementById('exportDownload').addEventListener('click', () => {
+                const { blob, fileName } = currentExportFile;
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showToast('File download started.', 'success');
+            });
+
+            document.getElementById('exportWhatsApp').addEventListener('click', () => {
+                const text = encodeURIComponent(`Hello, the meter data export named "${currentExportFile.fileName}" is ready. Please download and review.`);
+                window.open(`https://wa.me/?text=${text}`, '_blank');
+            });
+
+            document.getElementById('exportEmail').addEventListener('click', () => {
+                const subject = encodeURIComponent(`Meter Data Export: ${currentExportFile.fileName}`);
+                const body = encodeURIComponent(`Hello,\n\nThe meter data export named "${currentExportFile.fileName}" is ready.\n\nPlease download the file from the app to view the data.\n\nThank you.`);
+                window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
+            });
+        }
+        
+        function confirmClearAllData() {
+            const modal = document.getElementById('customModal');
+            const buttonsContainer = document.getElementById('modalButtons');
+            buttonsContainer.innerHTML = `
+                <button onclick="hideModal('customModal')" class="modal-cancel-btn">Cancel</button>
+                <button onclick="clearAllData()" class="modal-confirm-btn">Confirm Clear</button>
+            `;
+            showModal('customModal', 'Clear All Data', 'Are you absolutely sure? This will delete all saved records permanently.');
+        }
+
+        function clearAllData() {
+            db.transaction([STORE_NAME], 'readwrite').objectStore(STORE_NAME).clear().onsuccess = () => {
+                showToast('All data has been cleared.');
+                renderTable();
+            };
+            hideModal('customModal');
+        }
+    </script>
+</body>
+</html>

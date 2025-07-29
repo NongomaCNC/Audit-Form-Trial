@@ -1,758 +1,951 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meter Data Capture PWA</title>
-    
-    <!-- PWA Manifest and Meta Tags -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="MeterApp">
-    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
-    <link rel="icon" href="icons/icon-192x192.png" type="image/png">
-    <meta name="theme-color" content="#0d9488">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Field Data Capture</title>
 
-    <!-- Tailwind CSS for modern styling -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- SheetJS for Excel Export -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
-    
-    <!-- Custom Font -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+    <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
 
     <style>
-        /* Custom styles to complement Tailwind */
+        /* ---------- BASIC LAYOUT ---------- */
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --info-color: #17a2b8;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --cyan-color: #0dcaf0;
+        }
+
         body {
-            font-family: 'Inter', sans-serif;
-            -webkit-tap-highlight-color: transparent; /* Disable tap highlight on mobile */
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            padding: 1rem;
+            background: #f2f2f2;
+            color: var(--dark-color);
+            -webkit-tap-highlight-color: transparent;
+        }
+        .main-content {
+            display: none; /* Hidden by default until secret code is entered */
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-top: 0.5rem;
+            margin-bottom: 1.5rem;
         }
 
-        /* Custom styling for form inputs for a consistent look */
-        .form-input {
-            @apply w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition duration-150 ease-in-out;
+        form {
+            background: #fff;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: 1fr;
+            max-width: 900px;
+            margin: auto;
+            margin-bottom: 2rem;
         }
-        
-        /* Styling for the custom modal */
-        .modal-backdrop {
-            @apply fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 transition-opacity duration-300;
-        }
-
-        .modal-content {
-            @apply bg-white rounded-lg shadow-2xl p-6 m-4 max-w-sm w-full transform transition-transform duration-300 scale-95;
-        }
-
-        .modal-title {
-            @apply text-xl font-bold text-gray-800 mb-4;
-        }
-
-        .modal-body {
-            @apply text-gray-600 mb-6;
-        }
-        
-        .modal-buttons button {
-            @apply px-4 py-2 rounded-md font-semibold transition duration-150 ease-in-out;
-        }
-        
-        .modal-confirm-btn {
-            @apply bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500;
+        @media (min-width: 600px) {
+            form {
+                grid-template-columns: 1fr 1fr;
+            }
         }
 
-        .modal-cancel-btn {
-            @apply bg-gray-200 text-gray-800 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400;
+        /* ---------- FORM ELEMENTS ---------- */
+        .field {
+            display: flex;
+            flex-direction: column;
         }
-
-        /* Responsive table styling */
-        .table-container {
+        label {
+            margin-bottom: 0.3rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        label .required-star {
+            color: var(--danger-color);
+            font-weight: bold;
+            margin-left: 2px;
+        }
+        input, select, textarea {
+            padding: 0.6rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
             width: 100%;
-            overflow-x: auto; /* Allows horizontal scrolling on small screens */
-            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+            box-sizing: border-box;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
-        
-        /* Custom scrollbar for better aesthetics */
-        .table-container::-webkit-scrollbar {
-            height: 8px;
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
         }
-        .table-container::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
+        textarea {
+            min-height: 60px;
+            resize: vertical;
         }
-        .table-container::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 10px;
+        input[readonly] {
+            background-color: #e9e9e9;
+            cursor: not-allowed;
         }
-        .table-container::-webkit-scrollbar-thumb:hover {
-            background: #555;
+
+        /* ---------- BUTTONS ---------- */
+        .actions {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 1rem;
         }
+        button {
+            flex: 1 1 auto;
+            min-width: 120px;
+            border: none;
+            border-radius: 5px;
+            color: #fff;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        button:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        button:active {
+            transform: translateY(0);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        #gpsBtn { background: var(--success-color); }
+        #submitBtn { background: var(--primary-color); }
+        #viewDataBtn { background: var(--info-color); }
+        #downloadOnlyBtn { background: var(--cyan-color); color: #000; }
+        #exportBtn { background: var(--warning-color); color: #000; }
+        #clearDataBtn { background: var(--danger-color); }
+        #closeViewDataBtn { background: var(--secondary-color); }
+
+
+        /* ---------- MESSAGES & MODALS ---------- */
+        #message {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 25px;
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+            pointer-events: none;
+            text-align: center;
+            white-space: nowrap;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        #message.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(-10px);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1500;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .modal-overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-content {
+            background: #fff;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 90%;
+            width: 350px;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        .modal-overlay.visible .modal-content {
+            transform: scale(1);
+        }
+        .modal-content h2 { margin-top: 0; }
+        .modal-content input { margin: 1rem 0; }
+        .modal-actions {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+        #passwordSubmit, #confirmYesBtn {
+            background-color: var(--success-color);
+        }
+        #confirmNoBtn {
+            background-color: var(--secondary-color);
+        }
+
+        /* ---------- SAVED DATA SECTION ---------- */
+        #savedDataSection {
+            background: #fff;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,.1);
+            max-width: 900px;
+            margin: auto;
+            margin-top: 2rem;
+            display: none;
+        }
+        #savedDataSection.visible {
+            display: block;
+        }
+        #savedDataSection h2 {
+            text-align: center;
+            color: #333;
+            margin-top: 0;
+            margin-bottom: 1rem;
+        }
+        #dataCounts {
+            text-align: center;
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+            color: var(--secondary-color);
+        }
+        #dataCounts span {
+            font-weight: bold;
+            color: var(--dark-color);
+            margin: 0 10px;
+        }
+        #savedDataTableContainer {
+            overflow-x: auto;
+            max-width: 100%;
+        }
+        #savedDataTable {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1rem;
+        }
+        #savedDataTable th, #savedDataTable td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+            white-space: nowrap;
+        }
+        #savedDataTable th {
+            background-color: #f2f2f2;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+        #savedDataTable tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        #savedDataTable tr:hover {
+            background-color: #f1f1f1;
+        }
+        .action-cell button {
+            padding: 4px 8px;
+            font-size: 0.8rem;
+            min-width: auto;
+            margin-right: 5px;
+        }
+        .edit-btn { background-color: var(--primary-color); }
+        .delete-btn { background-color: var(--danger-color); }
     </style>
 </head>
-<body class="bg-gray-100 text-gray-800">
+<body>
 
-    <!-- Login Screen -->
-    <div id="login-screen" class="fixed inset-0 bg-gray-200 z-50 flex items-center justify-center p-4">
-        <div class="w-full max-w-sm bg-white p-8 rounded-xl shadow-lg">
-            <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Enter Access Code</h2>
-            <form id="login-form">
-                <div class="mb-4">
-                    <input type="password" id="access-code" class="form-input text-center text-lg tracking-widest" placeholder="••••••">
-                </div>
-                <p id="login-error" class="text-red-500 text-sm text-center mb-4 h-5"></p>
-                <button type="submit" class="w-full px-6 py-3 bg-teal-600 text-white font-semibold rounded-md hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition">
-                    Login
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Main Application Wrapper -->
-    <div id="main-app" class="hidden">
-        <header class="bg-teal-600 shadow-md">
-            <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
-                <h1 class="text-2xl font-bold text-white tracking-tight">Meter Data Capture</h1>
-            </div>
-        </header>
-
-        <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-            <!-- Data Entry Form -->
-            <div class="bg-white p-6 rounded-lg shadow-lg mb-8">
-                <form id="dataForm">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                        <!-- Form fields will be dynamically inserted here by JavaScript -->
-                    </div>
-                    <div class="mt-8 flex justify-end space-x-4">
-                        <button type="reset" class="px-6 py-2 bg-gray-200 text-gray-800 font-semibold rounded-md hover:bg-gray-300 transition">Clear Form</button>
-                        <button type="submit" class="px-6 py-2 bg-teal-600 text-white font-semibold rounded-md hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition">Add Entry</button>
-                    </div>
-                </form>
-            </div>
-
-            <!-- Action Toolbar -->
-            <div class="bg-white p-4 rounded-lg shadow-lg mb-8 flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-                <button class="w-full sm:w-auto px-5 py-2.5 bg-green-600 text-white font-semibold rounded-md hover:bg-green-700 transition flex items-center justify-center space-x-2" onclick="prepareAndShowExportOptions()">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
-                    <span>Export & Share...</span>
-                </button>
-                <button class="w-full sm:w-auto px-5 py-2.5 bg-red-600 text-white font-semibold rounded-md hover:bg-red-700 transition flex items-center justify-center space-x-2" onclick="confirmClearAllData()">
-                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>
-                    <span>Clear All Data</span>
-                </button>
-            </div>
-
-            <!-- Data Table -->
-            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
-                <div id="tableContainer" class="table-container">
-                    <!-- Table will be rendered here -->
-                </div>
-            </div>
-        </main>
-
-        <!-- Floating Action Button for GPS -->
-        <button onclick="getGPSLocation()" class="fixed bottom-6 right-6 bg-blue-600 text-white w-16 h-16 rounded-full shadow-lg flex items-center justify-center hover:bg-blue-700 transition transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg>
-        </button>
-    </div>
-    
-    <!-- Toast Notification -->
-    <div id="toast" class="fixed top-5 right-5 bg-gray-800 text-white px-6 py-3 rounded-lg shadow-lg opacity-0 transform -translate-y-10 transition-all duration-300 z-50">
-        <p id="toast-message"></p>
-    </div>
-
-    <!-- Custom Modal for Confirmations -->
-    <div id="customModal" class="modal-backdrop opacity-0 pointer-events-none">
-        <div class="modal-content scale-95">
-            <h3 id="modalTitle" class="modal-title">Confirmation</h3>
-            <p id="modalBody" class="modal-body">Are you sure?</p>
-            <div id="modalButtons" class="flex justify-end space-x-4 modal-buttons">
-                <!-- Buttons will be added dynamically -->
+    <!-- Password Modal -->
+    <div id="passwordModal" class="modal-overlay visible">
+        <div class="modal-content">
+            <h2>Data Encryption</h2>
+            <p>Enter a password to encrypt and decrypt your data. This password is not stored and is required every session.</p>
+            <input type="password" id="passwordInput" placeholder="Data Password">
+            <div class="modal-actions">
+                <button id="passwordSubmit">Unlock Data</button>
             </div>
         </div>
     </div>
 
-    <!-- Export Options Modal -->
-    <div id="exportOptionsModal" class="modal-backdrop opacity-0 pointer-events-none">
-        <div class="modal-content scale-95">
-            <h3 class="modal-title">Export Options</h3>
-            <div class="space-y-3">
-                <button id="exportShare" class="w-full px-4 py-3 bg-teal-600 text-white font-semibold rounded-md hover:bg-teal-700 transition flex items-center justify-center space-x-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" /></svg>
-                    <span>Share File (Recommended)</span>
-                </button>
-                <button id="exportDownload" class="w-full px-4 py-3 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 transition flex items-center justify-center space-x-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 9.293a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
-                    <span>Download File</span>
-                </button>
-                <div class="text-center text-xs text-gray-500 pt-2">Or notify via...</div>
-                <button id="exportWhatsApp" class="w-full px-4 py-3 bg-green-500 text-white font-semibold rounded-md hover:bg-green-600 transition flex items-center justify-center space-x-2">
-                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.894 11.892-1.99 0-3.903-.52-5.687-1.475L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.886-.001 2.267.655 4.398 1.908 6.161l-1.317 4.834 4.92-1.305z"/></svg>
-                    <span>WhatsApp (Message Only)</span>
-                </button>
-                 <button id="exportEmail" class="w-full px-4 py-3 bg-gray-600 text-white font-semibold rounded-md hover:bg-gray-700 transition flex items-center justify-center space-x-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" /><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" /></svg>
-                    <span>Email (Message Only)</span>
-                </button>
+    <!-- Confirmation Modal -->
+    <div id="confirmModal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 id="confirmTitle">Are you sure?</h2>
+            <p id="confirmMessage"></p>
+            <div class="modal-actions">
+                <button id="confirmYesBtn">Yes</button>
+                <button id="confirmNoBtn">No</button>
             </div>
-             <div class="mt-6 text-center">
-                <button onclick="hideModal('exportOptionsModal')" class="modal-cancel-btn">Close</button>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <h1>Field Data Capture</h1>
+
+        <form id="captureForm" novalidate>
+            <input type="hidden" id="recordId" name="id">
+
+            <!-- Form fields remain the same -->
+            <div class="field"><label for="workorderNo">Workorder No</label><input id="workorderNo" name="workorderNo" type="text" placeholder="Optional"></div>
+            <div class="field"><label for="zone">Zone</label><input id="zone" name="zone" type="text" placeholder="e.g., North"></div>
+            <div class="field"><label for="sector">Sector</label><input id="sector" name="sector" type="text" placeholder="e.g., A"></div>
+            <div class="field"><label for="cnc">CNC</label><input id="cnc" name="cnc" type="text"></div>
+            <div class="field"><label for="contractorName">Contractor Name or Source</label><input id="contractorName" name="contractorName" type="text"></div>
+            <div class="field"><label for="date">Date</label><input id="date" type="date" name="date"></div>
+            <div class="field"><label for="feederName">Feeder Name</label><input id="feederName" name="feederName" type="text"></div>
+            <div class="field"><label for="townshipName">Township Name</label><input id="townshipName" name="townshipName" type="text"></div>
+            <div class="field"><label for="transformerNo">Transformer No</label><input id="transformerNo" name="transformerNo" type="text"></div>
+            <div class="field"><label for="standNo">Stand No</label><input id="standNo" name="standNo" type="text"></div>
+            <div class="field"><label for="installationNo">Installation No</label><input id="installationNo" name="installationNo" type="text"></div>
+            <div class="field"><label for="lat">Latitude (DD MM SS.SSS S/N)</label><input id="lat" name="latitude" type="text" readonly></div>
+            <div class="field"><label for="lon">Longitude (DD MM SS.SSS E/W)</label><input id="lon" name="longitude" type="text" readonly></div>
+            <div class="field"><label for="access">Access</label><select id="access" name="access"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
+            <div class="field"><label for="atHome">At Home</label><select id="atHome" name="atHome"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
+            <div class="field"><label for="connected">Connected</label><select id="connected" name="connected"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
+            <div class="field"><label for="abandoned">Abandoned</label><select id="abandoned" name="abandoned"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
+            <div class="field"><label for="vandalised">Vandalised</label><select id="vandalised" name="vandalised"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
+            <div class="field"><label for="illegal">Illegal</label><select id="illegal" name="illegal"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
+            <div class="field"><label for="owner">Owner</label><select id="owner" name="owner"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
+            <div class="field"><label for="surname">Surname</label><input id="surname" name="surname" type="text"></div>
+            <div class="field"><label for="name">Name</label><input id="name" name="name" type="text"></div>
+            <div class="field"><label for="idNo">ID No</label><input id="idNo" name="idNo" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="e.g., 8501015000087"></div>
+            <div class="field"><label for="phoneCode">Phone Code</label><input id="phoneCode" name="phoneCode" type="tel" inputmode="numeric" pattern="[0-9]*" placeholder="e.g., +27"></div>
+            <div class="field"><label for="phoneNo">Phone No</label><input id="phoneNo" name="phoneNo" type="tel" inputmode="tel" placeholder="e.g., 821234567"></div>
+            <div class="field"><label for="normalVendor">Normal Vendor</label><select id="normalVendor" name="normalVendor"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
+            <div class="field"><label for="recentVendor">Most Recent Vendor</label><input id="recentVendor" name="recentVendor" type="text"></div>
+            <div class="field"><label for="meterNo">Meter No</label><input id="meterNo" name="meterNo" type="text"></div>
+            <div class="field"><label for="split">Split</label><select id="split" name="split"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
+            <div class="field"><label for="commonBaseMeter">Common/Non Common Base Meter</label><input id="commonBaseMeter" name="commonBaseMeter" type="text"></div>
+            <div class="field"><label for="edEcu">ED/ECU</label><input id="edEcu" name="edEcu" type="text"></div>
+            <div class="field"><label for="meterType">Meter Type</label><input id="meterType" name="meterType" type="text"></div>
+            <div class="field"><label for="tariffCode">Tariff Code</label><input id="tariffCode" name="tariffCode" type="text"></div>
+            <div class="field"><label for="ampLimit">Amp Limit</label><input id="ampLimit" name="ampLimit" type="number" inputmode="numeric" pattern="[0-9]*"></div>
+            <div class="field"><label for="supplyGroupCode">Supply Group Code</label><input id="supplyGroupCode" name="supplyGroupCode" type="text"></div>
+            <div class="field"><label for="magCard">Mag Card/Keypad</label><input id="magCard" name="magCard" type="text"></div>
+            <div class="field"><label for="stsOrProp">STS or Prop</label><input id="stsOrProp" name="stsOrProp" type="text"></div>
+            <div class="field"><label for="tampered">Tampered</label><select id="tampered" name="tampered"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
+            <div class="field"><label for="tamperMethod">Tamper Method</label><input id="tamperMethod" name="tamperMethod" type="text"></div>
+            <div class="field"><label for="removed">Removed</label><select id="removed" name="removed"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
+            <div class="field"><label for="tamperNotNo">Tamper Not No</label><input id="tamperNotNo" name="tamperNotNo" type="text"></div>
+            <div class="field"><label for="cardTrip">Card Trip</label><select id="cardTrip" name="cardTrip"><option value="">— Select —</option><option value="Pass">Pass</option><option value="Fail">Fail</option></select></div>
+            <div class="field"><label for="elTest">E/L Test</label><select id="elTest" name="elTest"><option value="">— Select —</option><option value="Pass">Pass</option><option value="Fail">Fail</option></select></div>
+            <div class="field"><label for="meterFaulty">Meter Faulty</label><select id="meterFaulty" name="meterFaulty"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
+            <div class="field"><label for="replaced">Replaced</label><select id="replaced" name="replaced"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
+            <div class="field"><label for="mmfNo">MMF No</label><input id="mmfNo" name="mmfNo" type="text"></div>
+            <div class="field"><label for="newMeterNo">New Meter No</label><input id="newMeterNo" name="newMeterNo" type="text"></div>
+            <div class="field"><label for="newMeterType">New Meter Type</label><input id="newMeterType" name="newMeterType" type="text"></div>
+            <div class="field"><label for="newMeterAmpLimit">New Meter Amp Limit</label><input id="newMeterAmpLimit" name="newMeterAmpLimit" type="number" inputmode="numeric" pattern="[0-9]*"></div>
+            <div class="field"><label for="newMeterCardTrip">New Meter Card Trip</label><select id="newMeterCardTrip" name="newMeterCardTrip"><option value="">— Select —</option><option value="Pass">Pass</option><option value="Fail">Fail</option></select></div>
+            <div class="field"><label for="newMeterElTest">New Meter E/L Test</label><select id="newMeterElTest" name="newMeterElTest"><option value="">— Select —</option><option value="Pass">Pass</option><option value="Fail">Fail</option></select></div>
+            <div class="field"><label for="sealed">Sealed</label><select id="sealed" name="sealed"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
+            <div class="field"><label for="sealNo">Seal No</label><input id="sealNo" name="sealNo" type="text"></div>
+            <div class="field"><label for="remarks">Remarks</label><textarea id="remarks" name="remarks"></textarea></div>
+
+            <div class="actions">
+                <button type="button" id="gpsBtn">Get GPS</button>
+                <button type="submit" id="submitBtn">Save Data</button>
+                <button type="button" id="viewDataBtn">View Data</button>
+                <button type="button" id="downloadOnlyBtn">Download</button>
+                <button type="button" id="exportBtn">Download & Clear</button>
+            </div>
+        </form>
+
+        <div id="message" role="alert" aria-live="polite"></div>
+
+        <div id="savedDataSection">
+            <h2>Saved Field Entries</h2>
+            <div id="dataCounts"></div>
+            <div id="savedDataTableContainer">
+                <table id="savedDataTable">
+                    <thead id="savedTableHeader"></thead>
+                    <tbody id="savedTableBody"></tbody>
+                </table>
+            </div>
+            <div id="savedDataActions">
+                <button type="button" id="clearDataBtn">Clear All Saved Data</button>
+                <button type="button" id="closeViewDataBtn">Close View</button>
             </div>
         </div>
     </div>
 
     <script>
-        // --- Service Worker Registration ---
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('service-worker.js')
-                    .then(registration => console.log('Service Worker registered! Scope:', registration.scope))
-                    .catch(err => console.error('Service Worker registration failed:', err));
-            });
-        }
-        
-        // --- IndexedDB & Crypto Setup ---
-        const DB_NAME = 'MeterDataDB_Secure';
-        const DB_VERSION = 1;
-        const STORE_NAME = 'meterReadings';
-        const KEY_STORE_NAME = 'appKeys';
+        const DB_NAME = 'FieldDataDB';
+        const DB_VERSION = 2; // Incremented version for schema change
+        const STORE_NAME = 'records';
         let db;
-        let encryptionKey;
-        let currentExportFile = { blob: null, fileName: null }; // To hold the generated file for modals
+        let encryptionKey; // This will hold the key for the session
 
-        // --- Field Definitions ---
-        const fields = [
-            { name: "Workorder No", type: "text" }, { name: "Zone", type: "text" }, { name: "Sector", type: "text" }, { name: "CNC", type: "text", required: true },
-            { name: "Contractor Name or Source", type: "text" }, { name: "Date", type: "date" }, { name: "Feeder Name", type: "text" }, { name: "Township Name", type: "text" },
-            { name: "Transformer No", type: "text", required: true }, { name: "Stand No", type: "text" }, { name: "Installation No", type: "text" },
-            { name: "Latitude", type: "text", readonly: true }, { name: "Longitude", type: "text", readonly: true },
-            { name: "Access", type: "select", options: ["Yes", "No"] }, { name: "At Home", type: "select", options: ["Yes", "No"] },
-            { name: "Connected", type: "select", options: ["Yes", "No"] }, { name: "Abandoned", type: "select", options: ["Yes", "No"] },
-            { name: "Vandalised", type: "select", options: ["Yes", "No"] }, { name: "Illegal", type: "select", options: ["Yes", "No"] },
-            { name: "Owner", type: "select", options: ["Yes", "No"] }, { name: "Surname", type: "text" }, { name: "Name", type: "text" },
-            { name: "ID No", type: "text" }, { name: "Phone Code", type: "text" }, { name: "Phone No", type: "tel" },
-            { name: "Normal Vendor", type: "select", options: ["Yes", "No"] }, { name: "Most Recent Vendor", type: "text" }, { name: "Meter No", type: "text" },
-            { name: "Split", type: "select", options: ["Yes", "No"] }, { name: "Common or Non Common Base Meter", type: "text" }, { name: "ED/ECU", type: "text" },
-            { name: "Meter Type", type: "text" }, { name: "Tariff Code", type: "text" }, { name: "Amp Limit", type: "text" }, { name: "Supply Group Code", type: "text" },
-            { name: "Mag card/Keypad", type: "select", options: ["Mag card", "Keypad"] }, { name: "STS or Prop", type: "text", readonly: true }, { name: "Tampered", type: "select", options: ["Yes", "No"] },
-            { name: "Tamper Method", type: "text" }, { name: "Removed", type: "select", options: ["Yes", "No"] },
-            { name: "Card Trip", type: "select", options: ["Pass", "Fail"] }, { name: "E/L Test", type: "select", options: ["Pass", "Fail"] },
-            { name: "Meter Faulty", type: "select", options: ["Yes", "No"] }, { name: "Replaced", type: "select", options: ["Yes", "No"] },
-            { name: "MMF No", type: "text" }, { name: "New Meter No", type: "text" }, { name: "New Meter Type", type: "text" }, { name: "New Meter Amp Limit", type: "text" },
-            { name: "New Meter Card Trip", type: "select", options: ["Pass", "Fail"] }, { name: "New Meter E/L Test", type: "select", options: ["Pass", "Fail"] },
-            { name: "Sealed", type: "select", options: ["Yes", "No"] }, { name: "Seal No", type: "text" },
-            { name: "Remarks", type: "textarea", fullWidth: true }
-        ];
-        const SENSITIVE_FIELDS = ["Surname", "Name", "ID No", "Phone No"];
+        // --- CRYPTOGRAPHY FUNCTIONS ---
+        // Derives a key from a password using PBKDF2
+        async function getKey(password, salt) {
+            const enc = new TextEncoder();
+            const keyMaterial = await window.crypto.subtle.importKey(
+                "raw",
+                enc.encode(password),
+                { name: "PBKDF2" },
+                false,
+                ["deriveKey"]
+            );
+            return window.crypto.subtle.deriveKey(
+                {
+                    "name": "PBKDF2",
+                    salt: salt,
+                    "iterations": 100000,
+                    "hash": "SHA-256"
+                },
+                keyMaterial,
+                { "name": "AES-GCM", "length": 256 },
+                true,
+                ["encrypt", "decrypt"]
+            );
+        }
 
-        // --- UI Element References ---
-        const loginScreen = document.getElementById('login-screen');
-        const mainApp = document.getElementById('main-app');
-        const loginForm = document.getElementById('login-form');
-        const accessCodeInput = document.getElementById('access-code');
-        const loginError = document.getElementById('login-error');
-        const dataForm = document.getElementById('dataForm');
-        const formGrid = dataForm.querySelector('.grid');
-        const toast = document.getElementById('toast');
-        const toastMessage = document.getElementById('toast-message');
-        const tableContainer = document.getElementById('tableContainer');
-
-        // --- Core Application Logic ---
-        document.addEventListener('DOMContentLoaded', () => {
-            // Check login status first
-            checkLoginStatus();
-        });
-
-        function checkLoginStatus() {
-            const ACCESS_CODE = 'PWA2025'; // Your secret code
+        // Encrypts a JSON object
+        async function encryptData(dataObject) {
+            if (!encryptionKey) throw new Error("Encryption key is not set.");
+            const iv = window.crypto.getRandomValues(new Uint8Array(12)); // Initialization Vector
+            const enc = new TextEncoder();
+            const encodedData = enc.encode(JSON.stringify(dataObject));
             
-            if (localStorage.getItem('isLoggedIn') === 'true') {
-                showMainApp();
-            } else {
-                loginScreen.classList.remove('hidden');
-                mainApp.classList.add('hidden');
+            const encryptedContent = await window.crypto.subtle.encrypt(
+                { name: "AES-GCM", iv: iv },
+                encryptionKey,
+                encodedData
+            );
+            
+            // Combine iv and encrypted data for storage
+            const encryptedPackage = {
+                iv: Array.from(iv), // Convert Uint8Array to array for JSON compatibility
+                data: Array.from(new Uint8Array(encryptedContent))
+            };
+            return encryptedPackage;
+        }
+
+        // Decrypts an encrypted package
+        async function decryptData(encryptedPackage) {
+            if (!encryptionKey) throw new Error("Encryption key is not set.");
+            try {
+                const iv = new Uint8Array(encryptedPackage.iv);
+                const encryptedContent = new Uint8Array(encryptedPackage.data);
+
+                const decryptedContent = await window.crypto.subtle.decrypt(
+                    { name: "AES-GCM", iv: iv },
+                    encryptionKey,
+                    encryptedContent
+                );
+
+                const dec = new TextDecoder();
+                return JSON.parse(dec.decode(decryptedContent));
+            } catch (e) {
+                console.error("Decryption failed:", e);
+                throw new Error("Decryption failed. Check password or data integrity.");
             }
-
-            loginForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                loginError.textContent = '';
-                if (accessCodeInput.value === ACCESS_CODE) {
-                    localStorage.setItem('isLoggedIn', 'true');
-                    showMainApp();
-                } else {
-                    loginError.textContent = 'Invalid access code. Please try again.';
-                    accessCodeInput.value = '';
-                }
-            });
         }
 
-        async function showMainApp() {
-            loginScreen.classList.add('hidden');
-            mainApp.classList.remove('hidden');
 
-            // Initialize the rest of the app now that the user is logged in
-            generateForm();
-            setupConditionalValidation();
-            await initDb();
-            await renderTable();
-            setupExportButtonListeners();
-        }
-
-        function generateForm() {
-            let formHTML = '';
-            fields.forEach(field => {
-                const requiredAttr = field.required ? 'required' : '';
-                const readonlyAttr = field.readonly ? 'readonly' : '';
-                const fullWidthClass = field.fullWidth ? 'sm:col-span-2 md:col-span-3 lg:col-span-4' : '';
-
-                let inputHTML = '';
-                switch (field.type) {
-                    case 'select':
-                        const optionsHTML = field.options.map(opt => `<option value="${opt}">${opt}</option>`).join('');
-                        inputHTML = `<select name="${field.name}" class="form-input" ${requiredAttr}>
-                                        <option value="">-- Select --</option>
-                                        ${optionsHTML}
-                                     </select>`;
-                        break;
-                    case 'textarea':
-                         inputHTML = `<textarea name="${field.name}" class="form-input" rows="3" ${requiredAttr}></textarea>`;
-                        break;
-                    default:
-                        inputHTML = `<input type="${field.type}" name="${field.name}" class="form-input" ${requiredAttr} ${readonlyAttr}>`;
-                }
-
-                formHTML += `
-                    <div class="flex flex-col space-y-1 ${fullWidthClass}">
-                        <label for="${field.name}" class="text-sm font-medium text-gray-700">${field.name}${field.required ? '<span class="text-red-500">*</span>' : ''}</label>
-                        ${inputHTML}
-                    </div>
-                `;
-            });
-            formGrid.innerHTML = formHTML;
-        }
-        
-        function setupConditionalValidation() {
-            // Helper to toggle validation state on a field
-            const toggleFieldRequirement = (fieldName, isRequired) => {
-                const input = document.querySelector(`[name="${fieldName}"]`);
-                if (!input) return;
-                
-                const label = input.closest('.flex-col').querySelector('label');
-                // Use a unique class for each field's asterisk to prevent conflicts
-                const asteriskClassName = `conditional-asterisk-${fieldName.replace(/[^a-zA-Z0-9]/g, '')}`;
-                let asterisk = label.querySelector(`.${asteriskClassName}`);
-
-                if (isRequired) {
-                    input.required = true;
-                    if (!asterisk) {
-                        const newAsterisk = document.createElement('span');
-                        newAsterisk.className = `text-red-500 conditional-asterisk ${asteriskClassName}`;
-                        newAsterisk.textContent = ' *'; // Add space for better looks
-                        label.appendChild(newAsterisk);
-                    }
-                } else {
-                    // Only remove requirement if it's not a statically required field from the 'fields' array
-                    const isStaticallyRequired = fields.find(f => f.name === fieldName)?.required;
-                    if (!isStaticallyRequired) {
-                        input.required = false;
-                    }
-                    if (asterisk) {
-                        asterisk.remove();
-                    }
-                }
-            };
-
-            // Rule Set 1: Access, At Home, Connected
-            const updateAccessConnectedValidation = () => {
-                const isRequired = ['Access', 'At Home', 'Connected'].every(name => document.querySelector(`[name="${name}"]`).value === 'Yes');
-                ['Latitude', 'Longitude', 'Phone No', 'Meter No', 'ED/ECU', 'Sealed'].forEach(name => toggleFieldRequirement(name, isRequired));
-            };
-
-            // Rule Set 2: Tampered
-            const updateTamperedValidation = () => {
-                const isRequired = document.querySelector('[name="Tampered"]').value === 'Yes';
-                ['Tamper Method', 'Removed'].forEach(name => toggleFieldRequirement(name, isRequired));
-            };
-
-            // Rule Set 3: Meter Faulty
-            const updateMeterFaultyValidation = () => {
-                const isRequired = document.querySelector('[name="Meter Faulty"]').value === 'No';
-                ['Card Trip', 'E/L Test'].forEach(name => toggleFieldRequirement(name, isRequired));
-            };
-
-            // Rule Set 4: Replaced
-            const updateReplacedValidation = () => {
-                const isRequired = document.querySelector('[name="Replaced"]').value === 'Yes';
-                ['MMF No', 'New Meter No', 'New Meter Type', 'New Meter Amp Limit'].forEach(name => toggleFieldRequirement(name, isRequired));
-            };
-
-            // Rule set 5: Mag card/Keypad auto-population
-            const updateStsPropAutoPopulation = () => {
-                const magCardKeypad = document.querySelector('[name="Mag card/Keypad"]');
-                const stsOrProp = document.querySelector('[name="STS or Prop"]');
-                if (magCardKeypad.value === 'Mag card') {
-                    stsOrProp.value = 'Prop';
-                } else if (magCardKeypad.value === 'Keypad') {
-                    stsOrProp.value = 'STS';
-                } else {
-                    stsOrProp.value = '';
-                }
-            };
-
-             // Rule Set 6: Owner
-            const updateOwnerValidation = () => {
-                const isRequired = document.querySelector('[name="Owner"]').value === 'Yes';
-                toggleFieldRequirement('ID No', isRequired);
-            };
-
-            const allValidationUpdaters = [
-                updateAccessConnectedValidation,
-                updateTamperedValidation,
-                updateMeterFaultyValidation,
-                updateReplacedValidation,
-                updateStsPropAutoPopulation,
-                updateOwnerValidation
-            ];
-
-            // Attach listeners
-            ['Access', 'At Home', 'Connected'].forEach(name => document.querySelector(`[name="${name}"]`).addEventListener('change', updateAccessConnectedValidation));
-            document.querySelector('[name="Tampered"]').addEventListener('change', updateTamperedValidation);
-            document.querySelector('[name="Meter Faulty"]').addEventListener('change', updateMeterFaultyValidation);
-            document.querySelector('[name="Replaced"]').addEventListener('change', updateReplacedValidation);
-            document.querySelector('[name="Mag card/Keypad"]').addEventListener('change', updateStsPropAutoPopulation);
-            document.querySelector('[name="Owner"]').addEventListener('change', updateOwnerValidation);
-
-            // Run all validation checks on load to set the initial state correctly
-            allValidationUpdaters.forEach(updater => updater());
-
-            // Also update on form reset
-            dataForm.addEventListener('reset', () => {
-                // Use a timeout to allow the form fields to reset before re-validating
-                setTimeout(() => allValidationUpdaters.forEach(updater => updater()), 0);
-            });
-        }
-
-        async function initDb() {
+        // --- DATABASE FUNCTIONS ---
+        function initDb() {
             return new Promise((resolve, reject) => {
                 const request = indexedDB.open(DB_NAME, DB_VERSION);
-                request.onupgradeneeded = event => {
+                request.onupgradeneeded = (event) => {
                     db = event.target.result;
                     if (!db.objectStoreNames.contains(STORE_NAME)) {
                         db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
                     }
-                    if (!db.objectStoreNames.contains(KEY_STORE_NAME)) {
-                        db.createObjectStore(KEY_STORE_NAME, { keyPath: 'name' });
-                    }
                 };
-                request.onsuccess = async event => {
+                request.onsuccess = (event) => {
                     db = event.target.result;
-                    console.log('IndexedDB opened successfully.');
-                    try {
-                        encryptionKey = await getOrCreateEncryptionKey();
-                        resolve();
-                    } catch (error) {
-                        console.error("Failed to get/create encryption key:", error);
-                        showToast('Error initializing encryption. Data may not be secure.', 'error');
-                        reject(error);
-                    }
+                    resolve(db);
                 };
-                request.onerror = event => {
-                    console.error('IndexedDB error:', event.target.error);
-                    showToast('Error opening database.', 'error');
-                    reject(event.target.error);
-                };
+                request.onerror = (event) => reject(event.target.error);
             });
         }
 
-        async function getOrCreateEncryptionKey() {
-            const tx = db.transaction(KEY_STORE_NAME, 'readonly');
-            const store = tx.objectStore(KEY_STORE_NAME);
-            const getRequest = store.get('aes-gcm-key');
-
+        function addRecord(encryptedRecord) {
             return new Promise((resolve, reject) => {
-                getRequest.onsuccess = async event => {
-                    let key = event.target.result?.value;
-                    if (key) {
-                        resolve(key);
-                    } else {
-                        key = await crypto.subtle.generateKey(
-                            { name: 'AES-GCM', length: 256 },
-                            false, 
-                            ['encrypt', 'decrypt']
-                        );
-                        const writeTx = db.transaction(KEY_STORE_NAME, 'readwrite');
-                        writeTx.objectStore(KEY_STORE_NAME).put({ name: 'aes-gcm-key', value: key });
-                        resolve(key);
-                    }
-                };
-                getRequest.onerror = err => reject(err);
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                // The record is now an object { id, encryptedData }
+                const request = store.add({ encryptedData: encryptedRecord });
+                request.onsuccess = () => resolve();
+                request.onerror = (event) => reject(event.target.error);
+            });
+        }
+        
+        function updateRecord(id, encryptedRecord) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.put({ id: id, encryptedData: encryptedRecord });
+                request.onsuccess = () => resolve();
+                request.onerror = (event) => reject(event.target.error);
             });
         }
 
-        async function encryptData(data) {
-            if (!encryptionKey) throw new Error("Encryption key not available.");
-            const iv = crypto.getRandomValues(new Uint8Array(12));
-            const encrypted = await crypto.subtle.encrypt(
-                { name: "AES-GCM", iv: iv },
-                encryptionKey,
-                new TextEncoder().encode(data)
-            );
-            return { encryptedData: Array.from(new Uint8Array(encrypted)), iv: Array.from(iv) };
+        function getRecord(id) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readonly');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.get(id);
+                request.onsuccess = (event) => resolve(event.target.result);
+                request.onerror = (event) => reject(event.target.error);
+            });
         }
 
-        async function decryptData(encryptedObj) {
-            if (!encryptionKey) throw new Error("Encryption key not available.");
-            if (!encryptedObj?.encryptedData || !encryptedObj?.iv) return "[Encrypted]";
-            const decrypted = await crypto.subtle.decrypt(
-                { name: "AES-GCM", iv: new Uint8Array(encryptedObj.iv) },
-                encryptionKey,
-                new Uint8Array(encryptedObj.encryptedData)
-            );
-            return new TextDecoder().decode(decrypted);
+        // Other DB functions (delete, getAll, clearAll) remain largely the same
+        function deleteRecord(id) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.delete(id);
+                request.onsuccess = () => resolve();
+                request.onerror = (event) => reject(event.target.error);
+            });
         }
 
-        function showToast(message, type = 'success', duration = 3000) {
-            toastMessage.textContent = message;
-            toast.className = `fixed top-5 right-5 text-white px-6 py-3 rounded-lg shadow-lg opacity-100 transform translate-y-0 transition-all duration-300 z-50 ${type === 'error' ? 'bg-red-600' : 'bg-blue-600'}`;
-            if (duration > 0) {
-                setTimeout(() => {
-                    toast.className = toast.className.replace('opacity-100 translate-y-0', 'opacity-0 -translate-y-10');
-                }, duration);
+        function getAllRecords() {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readonly');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.getAll();
+                request.onsuccess = (event) => resolve(event.target.result);
+                request.onerror = (event) => reject(event.target.error);
+            });
+        }
+
+        function clearAllRecords() {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.clear();
+                request.onsuccess = () => resolve();
+                request.onerror = (event) => reject(event.target.error);
+            });
+        }
+
+        // --- UI FEEDBACK & MODALS ---
+        const messageElement = document.getElementById('message');
+        function showMessage(msg, type = 'info', duration = 3000) {
+            messageElement.textContent = msg;
+            messageElement.className = 'show';
+            let bgColor = 'rgba(0, 0, 0, 0.8)';
+            if (type === 'error') bgColor = 'rgba(220, 53, 69, 0.9)';
+            else if (type === 'success') bgColor = 'rgba(40, 167, 69, 0.9)';
+            messageElement.style.backgroundColor = bgColor;
+            setTimeout(() => {
+                messageElement.classList.remove('show');
+            }, duration);
+        }
+
+        const confirmModal = document.getElementById('confirmModal');
+        function showConfirm(title, message) {
+            return new Promise((resolve) => {
+                document.getElementById('confirmTitle').textContent = title;
+                document.getElementById('confirmMessage').textContent = message;
+                confirmModal.classList.add('visible');
+                document.getElementById('confirmYesBtn').onclick = () => {
+                    confirmModal.classList.remove('visible');
+                    resolve(true);
+                };
+                document.getElementById('confirmNoBtn').onclick = () => {
+                    confirmModal.classList.remove('visible');
+                    resolve(false);
+                };
+            });
+        }
+
+        // --- GPS & DATE ---
+        function toDMS(dec, type) {
+            const abs = Math.abs(dec);
+            const deg = Math.floor(abs);
+            const minF = (abs - deg) * 60;
+            const min = Math.floor(minF);
+            const sec = ((minF - min) * 60).toFixed(3);
+            let hemisphere = dec >= 0 ? (type === 'latitude' ? 'N' : 'E') : (type === 'latitude' ? 'S' : 'W');
+            return `${String(deg).padStart(2, '0')} ${String(min).padStart(2, '0')} ${sec.padStart(6, '0')} ${hemisphere}`;
+        }
+        
+        function setTodaysDate() {
+            const today = new Date();
+            document.getElementById('date').valueAsDate = today;
+        }
+
+        // --- VALIDATION ---
+        const alwaysRequiredFields = ['cnc', 'date', 'feederName', 'transformerNo'];
+        const conditionalRequiredFields = ['phoneCode', 'phoneNo', 'meterNo', 'meterType', 'supplyGroupCode', 'cardTrip', 'elTest', 'sealed', 'sealNo', 'lat', 'lon'];
+        
+        function updateRequiredVisuals() {
+            const form = document.getElementById('captureForm');
+            const isConditionMet = ['access', 'atHome', 'connected'].some(id => form.elements[id].value === 'Yes');
+            form.querySelectorAll('.required-star').forEach(star => star.remove());
+            const addStar = (element) => {
+                const label = element.closest('.field')?.querySelector('label');
+                if (label && !label.querySelector('.required-star')) {
+                    const star = document.createElement('span');
+                    star.className = 'required-star';
+                    star.textContent = '*';
+                    label.appendChild(star);
+                }
+            };
+            alwaysRequiredFields.forEach(id => addStar(form.elements[id]));
+            if (isConditionMet) {
+                conditionalRequiredFields.forEach(id => addStar(form.elements[id]));
+            }
+        }
+
+        function validateForm() {
+            const form = document.getElementById('captureForm');
+            const data = new FormData(form);
+            const errors = [];
+            const isConditionMet = ['access', 'atHome', 'connected'].some(id => form.elements[id].value === 'Yes');
+            const checkField = (id, label) => {
+                if (!data.get(id)?.trim()) {
+                    errors.push(`${label} is required.`);
+                }
+            };
+            alwaysRequiredFields.forEach(id => {
+                const label = form.querySelector(`label[for=${id}]`).textContent.replace('*','');
+                checkField(id, label);
+            });
+            if (isConditionMet) {
+                conditionalRequiredFields.forEach(id => {
+                    const label = form.querySelector(`label[for=${id}]`).textContent.replace('*','').replace(/ \(.+\)/, '');
+                    checkField(id, label);
+                });
+            }
+            if (errors.length > 0) {
+                showMessage(errors.join('\n'), 'error', 5000);
+                return false;
+            }
+            return true;
+        }
+
+        // --- FORM & DATA HANDLING (NOW WITH ENCRYPTION) ---
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            if (!validateForm()) return;
+
+            const form = e.target;
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            const recordId = data.id ? parseInt(data.id, 10) : null;
+            delete data.id; // Don't encrypt the ID
+
+            if (data.date) {
+                const d = new Date(data.date);
+                data.date = `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
+            }
+
+            try {
+                const encryptedData = await encryptData(data);
+                if (recordId) {
+                    await updateRecord(recordId, encryptedData);
+                    showMessage('Data updated successfully ✔', 'success');
+                } else {
+                    await addRecord(encryptedData);
+                    showMessage('Data saved and encrypted successfully ✔', 'success');
+                }
+                resetForm();
+            } catch (error) {
+                console.error('Failed to encrypt/save record:', error);
+                showMessage('Failed to save data. Check console for errors.', 'error');
             }
         }
         
-        function hideToast() {
-            toast.className = toast.className.replace('opacity-100 translate-y-0', 'opacity-0 -translate-y-10');
+        function resetForm() {
+            document.getElementById('captureForm').reset();
+            document.getElementById('recordId').value = '';
+            document.getElementById('submitBtn').textContent = 'Save Data';
+            setTodaysDate();
+            updateRequiredVisuals();
+            window.scrollTo(0, 0);
         }
 
-        function showModal(modalId, title, body) {
-            const modal = document.getElementById(modalId);
-            if (title) modal.querySelector('.modal-title').textContent = title;
-            if (body) modal.querySelector('.modal-body').textContent = body;
-            
-            modal.classList.remove('opacity-0', 'pointer-events-none');
-            modal.querySelector('.modal-content').classList.remove('scale-95');
+        async function editEntry(id) {
+            try {
+                const encryptedRecord = await getRecord(id);
+                if (!encryptedRecord) throw new Error("Record not found");
+
+                const record = await decryptData(encryptedRecord.encryptedData);
+                
+                const form = document.getElementById('captureForm');
+                for (const key in record) {
+                    if (form.elements[key]) {
+                        form.elements[key].value = record[key];
+                    }
+                }
+                if (record.date) {
+                    form.elements.date.value = record.date.replace(/\//g, '-');
+                }
+                document.getElementById('recordId').value = id;
+                document.getElementById('submitBtn').textContent = 'Update Data';
+                updateRequiredVisuals();
+                savedDataSection.classList.remove('visible');
+                window.scrollTo(0, 0);
+                showMessage('Editing entry. Scroll up to see the form.', 'info');
+            } catch (error) {
+                showMessage(`Error loading data for editing: ${error.message}`, 'error');
+            }
         }
-
-        function hideModal(modalId) {
-            const modal = document.getElementById(modalId);
-            modal.classList.add('opacity-0', 'pointer-events-none');
-            modal.querySelector('.modal-content').classList.add('scale-95');
-        }
-
-        function toDMS(coord, type) {
-            const absolute = Math.abs(coord);
-            const degrees = Math.floor(absolute);
-            const minutesNotTruncated = (absolute - degrees) * 60;
-            const minutes = Math.floor(minutesNotTruncated);
-            const seconds = ((minutesNotTruncated - minutes) * 60).toFixed(3);
-
-            // Determine direction based on type. For South Africa, Lat is S, Lon is E.
-            const direction = type === 'lat' ? 'S' : 'E';
-
-            return `${String(degrees).padStart(2, '0')} ${String(minutes).padStart(2, '0')} ${seconds} ${direction}`;
-        }
-
-        async function getGPSLocation() {
-            const latInput = document.querySelector('[name="Latitude"]');
-            const lonInput = document.querySelector('[name="Longitude"]');
-            if(!latInput || !lonInput) return;
-
-            latInput.value = 'Getting...';
-            lonInput.value = 'Getting...';
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        latInput.value = toDMS(position.coords.latitude, 'lat');
-                        lonInput.value = toDMS(position.coords.longitude, 'lon');
-                        showToast('GPS coordinates obtained!');
-                    },
-                    (error) => {
-                        latInput.value = '';
-                        lonInput.value = '';
-                        showToast(`Error getting GPS: ${error.message}`, 'error');
-                    },
-                    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-                );
-            } else {
-                latInput.value = '';
-                lonInput.value = '';
-                showToast('Geolocation is not supported.', 'error');
+        
+        async function deleteEntry(id) {
+            const confirmed = await showConfirm('Delete Entry', 'Are you sure you want to delete this entry? This cannot be undone.');
+            if (confirmed) {
+                try {
+                    await deleteRecord(id);
+                    showMessage('Entry deleted successfully.', 'success');
+                    displaySavedData();
+                } catch (error) {
+                    showMessage('Error deleting entry.', 'error');
+                }
             }
         }
 
-        dataForm.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const formData = new FormData(dataForm);
-            let rowData = {};
+        // --- EXPORT & VIEW DATA (NOW WITH DECRYPTION) ---
+        const savedDataSection = document.getElementById('savedDataSection');
+        const formFieldOrder = Array.from(document.getElementById('captureForm').elements)
+            .map(el => el.name)
+            .filter((name, index, self) => name && self.indexOf(name) === index && name !== 'id');
 
-            for (const field of fields) {
-                rowData[field.name] = formData.get(field.name) || "";
+        async function displaySavedData() {
+            try {
+                const encryptedRecords = await getAllRecords();
+                if (encryptedRecords.length === 0) {
+                    showMessage('No saved data to display.', 'info');
+                    savedDataSection.classList.remove('visible');
+                    return;
+                }
+
+                const records = [];
+                for (const rec of encryptedRecords) {
+                    try {
+                        const decrypted = await decryptData(rec.encryptedData);
+                        decrypted.id = rec.id; // Re-attach the ID post-decryption
+                        records.push(decrypted);
+                    } catch (e) {
+                         showMessage('One or more records failed to decrypt. Incorrect password?', 'error');
+                         console.error("Decryption failure for record id:", rec.id);
+                         return; // Stop processing if a record fails
+                    }
+                }
+
+                let tamperedCount = 0;
+                let faultyCount = 0;
+                records.forEach(rec => {
+                    if (rec.tampered === 'Yes') tamperedCount++;
+                    if (rec.meterFaulty === 'Yes') faultyCount++;
+                });
+                document.getElementById('dataCounts').innerHTML = 
+                    `Total Entries: <span>${records.length}</span> | Tampered: <span>${tamperedCount}</span> | Meter Faulty: <span>${faultyCount}</span>`;
+                
+                const tableHeader = document.getElementById('savedTableHeader');
+                const tableBody = document.getElementById('savedTableBody');
+                tableHeader.innerHTML = '';
+                tableBody.innerHTML = '';
+                const headerRow = document.createElement('tr');
+                headerRow.innerHTML = '<th>#</th>';
+                formFieldOrder.forEach(key => {
+                    const label = document.querySelector(`label[for="${key}"]`)?.textContent || key;
+                    headerRow.innerHTML += `<th>${label.replace('*','')}</th>`;
+                });
+                headerRow.innerHTML += '<th>Actions</th>';
+                tableHeader.appendChild(headerRow);
+                
+                records.forEach((record, index) => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td>${index + 1}</td>`;
+                    formFieldOrder.forEach(key => {
+                        tr.innerHTML += `<td>${record[key] || ''}</td>`;
+                    });
+                    tr.innerHTML += `<td class="action-cell">
+                        <button class="edit-btn" onclick="editEntry(${record.id})">Edit</button>
+                        <button class="delete-btn" onclick="deleteEntry(${record.id})">Delete</button>
+                    </td>`;
+                    tableBody.appendChild(tr);
+                });
+
+                savedDataSection.classList.add('visible');
+            } catch (error) {
+                showMessage(`Failed to load saved data: ${error.message}`, 'error');
+            }
+        }
+        
+        async function performDownload() {
+            const encryptedRecords = await getAllRecords();
+            if (encryptedRecords.length === 0) {
+                showMessage('No data to export.', 'info');
+                return false;
             }
 
-            for (const sensitiveField of SENSITIVE_FIELDS) {
-                if (rowData[sensitiveField]) {
-                    rowData[sensitiveField] = await encryptData(rowData[sensitiveField]);
+            const records = [];
+            for (const rec of encryptedRecords) {
+                try {
+                    records.push(await decryptData(rec.encryptedData));
+                } catch(e) {
+                    showMessage('Could not decrypt all data for export. Incorrect password?', 'error');
+                    return false;
                 }
             }
 
-            const transaction = db.transaction([STORE_NAME], 'readwrite');
-            transaction.objectStore(STORE_NAME).add(rowData).onsuccess = () => {
-                showToast('Data saved successfully!');
-                dataForm.reset();
-                renderTable();
-            };
+            const map = {};
+            formFieldOrder.forEach(key => {
+                map[key] = document.querySelector(`label[for="${key}"]`)?.textContent.replace('*','') || key;
+            });
+            const formatted = records.map(rec => {
+                const obj = {};
+                for (const k in rec) {
+                    if (k !== 'id') obj[map[k] || k] = rec[k];
+                }
+                return obj;
+            });
+
+            try {
+                const ws = XLSX.utils.json_to_sheet(formatted, { header: formFieldOrder.map(k => map[k]) });
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'FieldData');
+                XLSX.writeFile(wb, 'Field_Data.xlsx');
+                showMessage('Data exported successfully!', 'success');
+                return true;
+            } catch (error) {
+                showMessage('Error exporting data to Excel.', 'error');
+                return false;
+            }
+        }
+
+        document.getElementById('downloadOnlyBtn').addEventListener('click', async () => {
+            const records = await getAllRecords();
+            if (records.length === 0) return showMessage('No data to export.', 'info');
+            const confirmed = await showConfirm('Download Data', `You have ${records.length} entries. Do you want to download the Excel file?`);
+            if (confirmed) await performDownload();
+            else showMessage('Download cancelled.', 'info');
         });
 
-        async function renderTable() {
-            const transaction = db.transaction([STORE_NAME], 'readonly');
-            const allData = await new Promise(resolve => transaction.objectStore(STORE_NAME).getAll().onsuccess = e => resolve(e.target.result));
-
-            if (allData.length === 0) {
-                tableContainer.innerHTML = `<p class="text-center text-gray-500 py-8">No data captured yet.</p>`;
-                return;
-            }
+        document.getElementById('exportBtn').addEventListener('click', async () => {
+            const recordsToExport = await getAllRecords();
+            if (recordsToExport.length === 0) return showMessage('No data to export.', 'info');
+            const downloadConfirmed = await showConfirm('Download Data', `You have ${recordsToExport.length} entries. Do you want to download the Excel file?`);
+            if (!downloadConfirmed) return showMessage('Download cancelled.', 'info');
             
-            const headers = fields.map(f => f.name);
-            let tableHTML = `<table class="min-w-full divide-y divide-gray-200"><thead class="bg-gray-50"><tr>`;
-            headers.forEach(h => tableHTML += `<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">${h}</th>`);
-            tableHTML += `<th scope="col" class="relative px-6 py-3"><span class="sr-only">Actions</span></th></tr></thead><tbody class="bg-white divide-y divide-gray-200">`;
-
-            for (const entry of allData) {
-                tableHTML += `<tr data-id="${entry.id}">`;
-                for (const fieldName of headers) {
-                    let value = entry[fieldName];
-                    if (SENSITIVE_FIELDS.includes(fieldName) && value) {
-                        value = await decryptData(value);
-                    }
-                    tableHTML += `<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${value || ''}</td>`;
+            const success = await performDownload();
+            if (success) {
+                const clearConfirmed = await showConfirm('Clear Data', 'Data has been downloaded. Do you want to clear all saved entries?');
+                if (clearConfirmed) {
+                    await clearAllRecords();
+                    savedDataSection.classList.remove('visible');
+                    showMessage('All saved data has been cleared.', 'success');
                 }
-                tableHTML += `<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <button onclick="confirmDeleteEntry(${entry.id})" class="text-red-600 hover:text-red-900">Delete</button>
-                              </td></tr>`;
             }
-            tableHTML += `</tbody></table>`;
-            tableContainer.innerHTML = tableHTML;
-        }
-        
-        function confirmDeleteEntry(id) {
-            const modal = document.getElementById('customModal');
-            const buttonsContainer = document.getElementById('modalButtons');
-            buttonsContainer.innerHTML = `
-                <button onclick="hideModal('customModal')" class="modal-cancel-btn">Cancel</button>
-                <button onclick="deleteEntry(${id})" class="modal-confirm-btn">Confirm Delete</button>
-            `;
-            showModal('customModal', 'Delete Entry', 'Are you sure you want to delete this entry? This action cannot be undone.');
-        }
+        });
 
-        function deleteEntry(id) {
-            db.transaction([STORE_NAME], 'readwrite').objectStore(STORE_NAME).delete(id).onsuccess = () => {
-                showToast('Entry deleted.');
-                renderTable();
-            };
-            hideModal('customModal');
-        }
-
-        // --- EXPORT AND SHARE LOGIC ---
-        
-        async function generateExcelBlob() {
-            const allData = await new Promise(resolve => db.transaction([STORE_NAME], 'readonly').objectStore(STORE_NAME).getAll().onsuccess = e => resolve(e.target.result));
-            if (allData.length === 0) {
-                showToast('No data to export.', 'error');
-                return null;
+        // --- INITIALIZATION & EVENT LISTENERS ---
+        document.getElementById('passwordSubmit').addEventListener('click', async () => {
+            const passwordInput = document.getElementById('passwordInput');
+            if (passwordInput.value.length < 8) {
+                return showMessage('Password must be at least 8 characters.', 'error');
             }
-            const dataForExcel = await Promise.all(allData.map(async entry => {
-                const decryptedEntry = {};
-                for (const field of fields.map(f => f.name)) {
-                    let value = entry[field];
-                    if (SENSITIVE_FIELDS.includes(field) && value) {
-                        try { decryptedEntry[field] = await decryptData(value); } catch { decryptedEntry[field] = '[DECRYPTION FAILED]'; }
-                    } else { decryptedEntry[field] = value || ''; }
-                }
-                return decryptedEntry;
-            }));
-            const worksheet = XLSX.utils.json_to_sheet(dataForExcel, { header: fields.map(f => f.name) });
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, 'Meter Data');
-            const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-            const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-            const fileName = `Meter_Data_${new Date().toISOString().split('T')[0]}.xlsx`;
-            return { blob, fileName };
-        }
 
-        async function prepareAndShowExportOptions() {
-            showToast('Preparing file...', 'info', 0); // Show indefinite toast
-            currentExportFile = await generateExcelBlob();
-            hideToast();
-            if (currentExportFile) {
-                showModal('exportOptionsModal');
-            }
-        }
-
-        function setupExportButtonListeners() {
-            document.getElementById('exportShare').addEventListener('click', async () => {
-                const { blob, fileName } = currentExportFile;
-                const file = new File([blob], fileName, { type: blob.type });
-                if (navigator.share && navigator.canShare({ files: [file] })) {
-                    try {
-                        await navigator.share({ files: [file], title: 'Meter Data Export', text: 'Meter data attached.' });
-                        showToast('File shared successfully!');
-                    } catch (error) { if (error.name !== 'AbortError') { showToast('Error sharing file.', 'error'); } }
-                } else {
-                    showToast('Web Share not supported. Try downloading.', 'error');
-                }
-            });
-
-            document.getElementById('exportDownload').addEventListener('click', () => {
-                const { blob, fileName } = currentExportFile;
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = fileName;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                showToast('File download started.', 'success');
-            });
-
-            document.getElementById('exportWhatsApp').addEventListener('click', () => {
-                const text = encodeURIComponent(`Hello, the meter data export named "${currentExportFile.fileName}" is ready. Please download and review.`);
-                window.open(`https://wa.me/?text=${text}`, '_blank');
-            });
-
-            document.getElementById('exportEmail').addEventListener('click', () => {
-                const subject = encodeURIComponent(`Meter Data Export: ${currentExportFile.fileName}`);
-                const body = encodeURIComponent(`Hello,\n\nThe meter data export named "${currentExportFile.fileName}" is ready.\n\nPlease download the file from the app to view the data.\n\nThank you.`);
+            try {
+                // A static salt is not ideal, but acceptable for this offline-first use case.
+                // In a real app, this would be unique per user and stored on a server.
+                const salt = new TextEncoder().encode("a-static-salt-for-the-pwa");
+                encryptionKey = await getKey(passwordInput.value, salt);
                 
-                // Create an anchor element to trigger the mail client more reliably
-                const mailtoLink = document.createElement('a');
-                mailtoLink.href = `mailto:?subject=${subject}&body=${body}`;
+                document.getElementById('passwordModal').classList.remove('visible');
+                document.querySelector('.main-content').style.display = 'block';
                 
-                // Append to body to make it clickable, then click, then remove
-                document.body.appendChild(mailtoLink);
-                mailtoLink.click();
-                document.body.removeChild(mailtoLink);
-            });
-        }
-        
-        function confirmClearAllData() {
-            const modal = document.getElementById('customModal');
-            const buttonsContainer = document.getElementById('modalButtons');
-            buttonsContainer.innerHTML = `
-                <button onclick="hideModal('customModal')" class="modal-cancel-btn">Cancel</button>
-                <button onclick="clearAllData()" class="modal-confirm-btn">Confirm Clear</button>
-            `;
-            showModal('customModal', 'Clear All Data', 'Are you absolutely sure? This will delete all saved records permanently.');
-        }
+                await initDb();
+                setTodaysDate();
+                updateRequiredVisuals();
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        pos => {
+                            document.getElementById('lat').value = toDMS(pos.coords.latitude, 'latitude');
+                            document.getElementById('lon').value = toDMS(pos.coords.longitude, 'longitude');
+                            showMessage('Initial GPS acquired.', 'success', 2000);
+                            updateRequiredVisuals();
+                        },
+                        err => showMessage('Could not get initial GPS.', 'info', 4000),
+                        { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+                    );
+                }
+            } catch (e) {
+                showMessage('Could not initialize encryption. See console.', 'error');
+                console.error(e);
+            }
+        });
 
-        function clearAllData() {
-            db.transaction([STORE_NAME], 'readwrite').objectStore(STORE_NAME).clear().onsuccess = () => {
-                showToast('All data has been cleared.');
-                renderTable();
-            };
-            hideModal('customModal');
-        }
+        document.getElementById('passwordInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') document.getElementById('passwordSubmit').click();
+        });
+
+        document.getElementById('captureForm').addEventListener('submit', handleFormSubmit);
+        document.getElementById('gpsBtn').onclick = () => {
+            if (!navigator.geolocation) return showMessage('Geolocation not supported.', 'error');
+            showMessage('Getting GPS...', 'info', 5000);
+            navigator.geolocation.getCurrentPosition(
+                pos => {
+                    document.getElementById('lat').value = toDMS(pos.coords.latitude, 'latitude');
+                    document.getElementById('lon').value = toDMS(pos.coords.longitude, 'longitude');
+                    showMessage('GPS acquired successfully!', 'success');
+                    updateRequiredVisuals();
+                },
+                err => showMessage(`GPS Error: ${err.message}`, 'error'),
+                { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+            );
+        };
+        
+        document.getElementById('viewDataBtn').addEventListener('click', () => {
+             if (savedDataSection.classList.contains('visible')) {
+                savedDataSection.classList.remove('visible');
+            } else {
+                displaySavedData();
+            }
+        });
+        
+        document.getElementById('closeViewDataBtn').addEventListener('click', () => {
+            savedDataSection.classList.remove('visible');
+        });
+
+        document.getElementById('clearDataBtn').addEventListener('click', async () => {
+            const confirmed = await showConfirm('Clear All Data', 'Are you sure you want to clear ALL saved data? This cannot be undone.');
+            if (confirmed) {
+                try {
+                    await clearAllRecords();
+                    savedDataSection.classList.remove('visible');
+                    showMessage('All saved data cleared successfully!', 'success');
+                } catch (error) {
+                    showMessage('Failed to clear all data.', 'error');
+                }
+            }
+        });
+        
+        ['access', 'atHome', 'connected'].forEach(id => {
+            document.getElementById(id).addEventListener('change', updateRequiredVisuals);
+        });
+
     </script>
 </body>
 </html>

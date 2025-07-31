@@ -1,23 +1,21 @@
 {
-  "name": "Secure Field Data Capture",
-  "short_name": "SecureData",
-  "description": "A secure PWA for capturing and encrypting field data offline.",
-  "start_url": ".",
+  "name": "Field Data Capture",
+  "short_name": "FieldData",
+  "description": "A Progressive Web App for capturing field data with offline capabilities.",
+  "start_url": "/index.html",
   "display": "standalone",
-  "background_color": "#ffffff",
+  "background_color": "#f2f2f2",
   "theme_color": "#007bff",
-  "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "https://placehold.co/192x192/007bff/ffffff?text=FDC",
-      "sizes": "192x192",
+      "src": "icon-192x192.png",
       "type": "image/png",
-      "purpose": "any maskable"
+      "sizes": "192x192"
     },
     {
-      "src": "https://placehold.co/512x512/007bff/ffffff?text=FDC",
-      "sizes": "512x512",
-      "type": "image/png"
+      "src": "icon-512x512.png",
+      "type": "image/png",
+      "sizes": "512x512"
     }
   ]
 }

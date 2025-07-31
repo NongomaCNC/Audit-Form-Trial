@@ -320,8 +320,11 @@
             <div class="field"><label for="transformerNo">Transformer No</label><input id="transformerNo" name="transformerNo" type="text"></div>
             <div class="field"><label for="standNo">Stand No</label><input id="standNo" name="standNo" type="text"></div>
             <div class="field"><label for="installationNo">Installation No</label><input id="installationNo" name="installationNo" type="text"></div>
-            <div class="field"><label for="lat">Latitude (DD MM SS.SSS S/N)</label><input id="lat" name="latitude" type="text" readonly></div>
-            <div class="field"><label for="lon">Longitude (DD MM SS.SSS E/W)</label><input id="lon" name="longitude" type="text" readonly></div>
+            
+            <!-- GPS Fields Updated -->
+            <div class="field"><label for="lat">Latitude (DD MM SS.SSS S)</label><input id="lat" name="latitude" type="text" readonly></div>
+            <div class="field"><label for="lon">Longitude (DD MM SS.SSS E)</label><input id="lon" name="longitude" type="text" readonly></div>
+
             <div class="field"><label for="access">Access</label><select id="access" name="access"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
             <div class="field"><label for="atHome">At Home</label><select id="atHome" name="atHome"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
             <div class="field"><label for="connected">Connected</label><select id="connected" name="connected"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
@@ -584,8 +587,19 @@
             const minF = (abs - deg) * 60;
             const min = Math.floor(minF);
             const sec = ((minF - min) * 60).toFixed(3);
-            let hemisphere = dec >= 0 ? (type === 'latitude' ? 'N' : 'E') : (type === 'latitude' ? 'S' : 'W');
-            return `${String(deg).padStart(2, '0')} ${String(min).padStart(2, '0')} ${sec.padStart(6, '0')} ${hemisphere}`;
+            const paddedSec = sec < 10 ? '0' + sec : sec;
+
+            let hemisphere;
+            if (type === 'latitude') {
+                hemisphere = dec < 0 ? 'S' : 'N';
+            } else { // longitude
+                hemisphere = dec < 0 ? 'W' : 'E';
+            }
+
+            const paddedDeg = String(deg).padStart(2, '0');
+            const paddedMin = String(min).padStart(2, '0');
+
+            return `${paddedDeg} ${paddedMin} ${paddedSec} ${hemisphere}`;
         }
         
         function setTodaysDate() {

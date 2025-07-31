@@ -872,6 +872,18 @@
                 // In a real app, this would be unique per user and stored on a server.
                 const salt = new TextEncoder().encode("a-static-salt-for-the-pwa");
                 encryptionKey = await getKey(passwordInput.value, salt);
+
+                // --- SESSION TIMEOUT ADDED ---
+                // This will clear the encryption key and require a new login after 8 hours.
+                const EIGHT_HOURS_IN_MS = 8 * 60 * 60 * 1000;
+                setTimeout(() => {
+                    encryptionKey = null; // Clear the sensitive key from memory
+                    document.getElementById('passwordInput').value = ''; // Clear password field
+                    document.getElementById('passwordModal').classList.add('visible'); // Show login modal
+                    document.querySelector('.main-content').style.display = 'none'; // Hide main content
+                    showMessage('Your 8-hour session has expired. Please re-enter your password.', 'info', 5000);
+                }, EIGHT_HOURS_IN_MS);
+                // --- END OF SESSION TIMEOUT CODE ---
                 
                 document.getElementById('passwordModal').classList.remove('visible');
                 document.querySelector('.main-content').style.display = 'block';
@@ -946,6 +958,18 @@
             document.getElementById(id).addEventListener('change', updateRequiredVisuals);
         });
 
+    </script>
+    <script>
+        // --- SERVICE WORKER REGISTRATION ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js').then(registration => {
+                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                }, err => {
+                    console.log('ServiceWorker registration failed: ', err);
+                });
+            });
+        }
     </script>
 </body>
 </html>

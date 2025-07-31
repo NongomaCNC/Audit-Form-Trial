@@ -1,101 +1,78 @@
-// A version for the cache. Change this to a new version to trigger an update.
-const CACHE_NAME = 'field-data-cache-v2';
-
-// A list of all the files and resources the app needs to function offline.
-// This list remains the same as all our code is in the main file.
+const CACHE_NAME = 'field-data-cache-v1';
 const urlsToCache = [
-  '.', // This represents the main HTML file (index.html)
-  'manifest.json',
+  '/',
+  '/index.html',
   'https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js',
-  'https://placehold.co/192x192/007bff/ffffff?text=FDC',
-  'https://placehold.co/512x512/007bff/ffffff?text=FDC'
+  '/icon-192x192.png',
+  '/icon-512x512.png',
+  '/manifest.json'
 ];
 
-// --- INSTALL EVENT ---
-// This event is fired when the service worker is first installed.
+// Install a service worker
 self.addEventListener('install', event => {
-  console.log('Service Worker: Installing...');
-  
-  // waitUntil() ensures that the service worker will not install until the
-  // code inside it has successfully completed.
+  // Perform install steps
   event.waitUntil(
-    // Open the cache by name.
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('Service Worker: Caching app shell');
-        // Add all the specified URLs to the cache.
+        console.log('Opened cache');
         return cache.addAll(urlsToCache);
-      })
-      .then(() => {
-        console.log('Service Worker: Installation complete.');
-        // Activate the new service worker immediately.
-        return self.skipWaiting();
-      })
-      .catch(error => {
-        console.error('Service Worker: Installation failed', error);
       })
   );
 });
 
-// --- ACTIVATE EVENT ---
-// This event is fired when the service worker is activated.
-// It's a good place to clean up old caches.
+// Cache and return requests
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    caches.match(event.request)
+      .then(response => {
+        // Cache hit - return response
+        if (response) {
+          return response;
+        }
+
+        // IMPORTANT: Clone the request. A request is a stream and
+        // can only be consumed once. Since we are consuming this
+        // once by cache and once by the browser for fetch, we need
+        // to clone the response.
+        const fetchRequest = event.request.clone();
+
+        return fetch(fetchRequest).then(
+          response => {
+            // Check if we received a valid response
+            if(!response || response.status !== 200 || response.type !== 'basic') {
+              return response;
+            }
+
+            // IMPORTANT: Clone the response. A response is a stream
+            // and because we want the browser to consume the response
+            // as well as the cache consuming the response, we need
+            // to clone it so we have two streams.
+            const responseToCache = response.clone();
+
+            caches.open(CACHE_NAME)
+              .then(cache => {
+                cache.put(event.request, responseToCache);
+              });
+
+            return response;
+          }
+        );
+      })
+    );
+});
+
+// Update a service worker
 self.addEventListener('activate', event => {
-  console.log('Service Worker: Activating...');
-  
+  const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
-        cacheNames.map(cache => {
-          // If a cache's name is not our current CACHE_NAME, we delete it.
-          if (cache !== CACHE_NAME) {
-            console.log('Service Worker: Clearing old cache:', cache);
-            return caches.delete(cache);
+        cacheNames.map(cacheName => {
+          if (cacheWhitelist.indexOf(cacheName) === -1) {
+            return caches.delete(cacheName);
           }
         })
       );
-    }).then(() => {
-        console.log('Service Worker: Activation complete.');
-        // Take control of all open clients (pages) at once.
-        return self.clients.claim();
     })
-  );
-});
-
-// --- FETCH EVENT ---
-// This event is fired for every network request the page makes.
-// We use this to serve cached content when offline.
-self.addEventListener('fetch', event => {
-  // We only want to handle GET requests.
-  if (event.request.method !== 'GET') {
-    return;
-  }
-
-  // We use respondWith() to hijack the request and provide our own response.
-  event.respondWith(
-    // Check if the requested resource is in our cache.
-    caches.match(event.request)
-      .then(cachedResponse => {
-        // If the resource is in the cache, return it.
-        if (cachedResponse) {
-          return cachedResponse;
-        }
-
-        // If the resource is not in the cache, fetch it from the network.
-        return fetch(event.request).then(
-            (networkResponse) => {
-                // A response can only be used once, so we need to clone it.
-                let responseToCache = networkResponse.clone();
-                caches.open(CACHE_NAME)
-                    .then((cache) => {
-                        cache.put(event.request, responseToCache);
-                    });
-                return networkResponse;
-            }
-        ).catch(error => {
-            console.error('Service Worker: Fetch failed.', error);
-            // You could return a custom offline page here if you had one.
-        });
-      })
   );
 });

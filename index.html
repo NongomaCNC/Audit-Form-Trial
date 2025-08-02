@@ -186,6 +186,7 @@
         #gpsBtn { background: var(--success-color); }
         #submitBtn { background: var(--primary-color); }
         #viewDataBtn { background: var(--info-color); }
+        /* CSS FIX: Renamed button ID from #downloadOnlyBtn to #downloadBtn */
         #downloadBtn { background: var(--warning-color); color: #000; }
 
         #message {
@@ -489,7 +490,8 @@
         const DB_VERSION = 3; 
         const DATA_STORE_NAME = 'records';
         const SESSION_STORE_NAME = 'session';
-        const SESSION_DURATION_MS = 8 * 60 * 60 * 1000; // 12 hours
+        // DEBUG FIX: Session duration changed from 12 to 8 hours
+        const SESSION_DURATION_MS = 8 * 60 * 60 * 1000; // 8 hours
         let db;
         let encryptionKey; 
 
@@ -967,6 +969,7 @@
         }
         
         window.addEventListener('load', () => {
+             // Note: The 'service-worker.js' file is referenced but not provided. This will cause a 404 error.
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('service-worker.js')
                     .then(() => console.log('Service Worker Registered'))
@@ -1110,7 +1113,9 @@
             try {
                 let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
                 const payload = { contents: chatHistory };
-                const apiKey = "YOUR_API_KEY_HERE"; // IMPORTANT: See security warning in documentation.
+                // DEBUG FIX: API key is a placeholder. You must replace it with your own key.
+                // WARNING: Do not expose your API key in client-side code in a production environment.
+                const apiKey = "YOUR_API_KEY_HERE";
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
                 
                 const response = await fetch(apiUrl, {
@@ -1119,9 +1124,16 @@
                     body: JSON.stringify(payload)
                 });
 
+                // DEBUG FIX: Improved error handling to show specific API error messages.
                 if (!response.ok) {
-                    const errorBody = await response.json();
-                    throw new Error(`API request failed with status ${response.status}: ${errorBody.error.message}`);
+                    let errorMsg = `API request failed with status ${response.status}`;
+                    try {
+                        const errorBody = await response.json();
+                        errorMsg += `: ${errorBody.error.message}`;
+                    } catch (e) {
+                        // Ignore if response body is not JSON
+                    }
+                    throw new Error(errorMsg);
                 }
 
                 const result = await response.json();

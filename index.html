@@ -6,15 +6,12 @@
     <title>Field Data Capture</title>
 
     <link rel="manifest" href="manifest.json">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
 
     <style>
+        /* ---------- BASIC LAYOUT ---------- */
         :root {
             --primary-color: #007bff;
-            --primary-gradient: linear-gradient(45deg, #007bff, #0056b3);
             --secondary-color: #6c757d;
             --success-color: #28a745;
             --danger-color: #dc3545;
@@ -22,80 +19,38 @@
             --info-color: #17a2b8;
             --light-color: #f8f9fa;
             --dark-color: #343a40;
-            --background-color: #f4f7fc;
-            --font-family: 'Inter', sans-serif;
+            --cyan-color: #0dcaf0;
         }
 
         body {
-            font-family: var(--font-family);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             margin: 0;
-            background-color: var(--background-color);
+            padding: 1rem;
+            background: #f2f2f2;
             color: var(--dark-color);
             -webkit-tap-highlight-color: transparent;
         }
-        
-        .app-header {
-            background: var(--primary-gradient);
-            color: white;
-            padding: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .app-header h1 {
-            margin: 0;
-            font-size: 1.5rem;
-            font-weight: 600;
-        }
-        
-        .header-controls {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        #statusIndicator {
-            font-size: 0.8rem;
-            font-weight: 600;
-            padding: 0.3rem 0.8rem;
-            border-radius: 20px;
-            background-color: rgba(255, 255, 255, 0.2);
-        }
-        #statusIndicator.offline {
-            background-color: var(--secondary-color);
-        }
-
-        #lockBtn {
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.3);
-            padding: 0.5rem 1rem;
-            font-size: 0.9rem;
-            min-width: auto;
-        }
-
-        .container {
-            padding: 1rem;
-            max-width: 900px;
-            margin: 1rem auto;
-        }
-
         .main-content {
-            display: none;
+            display: none; /* Hidden by default until secret code is entered */
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-top: 0.5rem;
+            margin-bottom: 1.5rem;
         }
 
         form {
             background: #fff;
             padding: 1.5rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             display: grid;
-            gap: 1.25rem;
+            gap: 1rem;
             grid-template-columns: 1fr;
+            max-width: 900px;
+            margin: auto;
+            margin-bottom: 2rem;
         }
         @media (min-width: 600px) {
             form {
@@ -103,30 +58,26 @@
             }
         }
 
+        /* ---------- FORM ELEMENTS ---------- */
         .field {
             display: flex;
             flex-direction: column;
         }
-        .field-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.5rem;
-        }
         label {
-            font-weight: 500;
+            margin-bottom: 0.3rem;
+            font-weight: 600;
             font-size: 0.9rem;
         }
         label .required-star {
             color: var(--danger-color);
+            font-weight: bold;
             margin-left: 2px;
         }
         input, select, textarea {
-            padding: 0.75rem;
+            padding: 0.6rem;
             border: 1px solid #ccc;
-            border-radius: 8px;
+            border-radius: 4px;
             font-size: 1rem;
-            font-family: var(--font-family);
             width: 100%;
             box-sizing: border-box;
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -134,47 +85,41 @@
         input:focus, select:focus, textarea:focus {
             outline: none;
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
         }
         textarea {
-            min-height: 80px;
+            min-height: 60px;
             resize: vertical;
         }
         input[readonly] {
             background-color: #e9e9e9;
             cursor: not-allowed;
         }
-        
-        #generateRemarksBtn {
-            font-size: 0.8rem;
-            padding: 0.25rem 0.6rem;
-            min-width: auto;
-            background: var(--primary-gradient);
-        }
 
+        /* ---------- BUTTONS ---------- */
         .actions {
             grid-column: 1 / -1;
             display: flex;
-            gap: 0.75rem;
+            gap: 1rem;
             flex-wrap: wrap;
             justify-content: center;
             margin-top: 1rem;
         }
         button {
             flex: 1 1 auto;
-            min-width: 130px;
+            min-width: 120px;
             border: none;
-            border-radius: 8px;
+            border-radius: 5px;
             color: #fff;
-            padding: 0.8rem 1rem;
-            font-size: 0.95rem;
-            font-weight: 600;
-            font-family: var(--font-family);
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            font-weight: 500;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         button:hover {
+            opacity: 0.9;
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         }
@@ -186,22 +131,28 @@
         #gpsBtn { background: var(--success-color); }
         #submitBtn { background: var(--primary-color); }
         #viewDataBtn { background: var(--info-color); }
-        /* CSS FIX: Renamed button ID from #downloadOnlyBtn to #downloadBtn */
-        #downloadBtn { background: var(--warning-color); color: #000; }
+        #downloadOnlyBtn { background: var(--cyan-color); color: #000; }
+        #exportBtn { background: var(--warning-color); color: #000; }
+        #clearDataBtn { background: var(--danger-color); }
+        #closeViewDataBtn { background: var(--secondary-color); }
 
+
+        /* ---------- MESSAGES & MODALS ---------- */
         #message {
             position: fixed;
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background-color: rgba(0, 0, 0, 0.85);
+            background-color: rgba(0, 0, 0, 0.8);
             color: #fff;
             padding: 12px 24px;
             border-radius: 25px;
             z-index: 2000;
             opacity: 0;
-            transition: all 0.3s ease;
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
             pointer-events: none;
+            text-align: center;
+            white-space: nowrap;
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
         #message.show {
@@ -231,62 +182,39 @@
         .modal-content {
             background: #fff;
             padding: 2rem;
-            border-radius: 12px;
+            border-radius: 8px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
             text-align: center;
             max-width: 90%;
-            width: 380px;
-            transform: scale(0.95);
+            width: 350px;
+            transform: scale(0.9);
             transition: transform 0.3s ease;
         }
         .modal-overlay.visible .modal-content {
             transform: scale(1);
         }
-        .modal-content h2 { margin-top: 0; font-weight: 600; }
-        .modal-content p { color: #555; line-height: 1.6; }
+        .modal-content h2 { margin-top: 0; }
         .modal-content input { margin: 1rem 0; }
         .modal-actions {
             display: flex;
             justify-content: center;
             gap: 1rem;
         }
-        #passwordSubmit, #resumePasswordSubmit, #confirmYesBtn {
+        #passwordSubmit, #confirmYesBtn {
             background-color: var(--success-color);
         }
         #confirmNoBtn {
             background-color: var(--secondary-color);
         }
-        
-        .spinner-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 3000;
-        }
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid var(--primary-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
 
+        /* ---------- SAVED DATA SECTION ---------- */
         #savedDataSection {
             background: #fff;
             padding: 1.5rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,.1);
+            max-width: 900px;
+            margin: auto;
             margin-top: 2rem;
             display: none;
         }
@@ -298,7 +226,6 @@
             color: #333;
             margin-top: 0;
             margin-bottom: 1rem;
-            font-weight: 600;
         }
         #dataCounts {
             text-align: center;
@@ -322,7 +249,7 @@
         }
         #savedDataTable th, #savedDataTable td {
             border: 1px solid #ddd;
-            padding: 12px;
+            padding: 10px;
             text-align: left;
             white-space: nowrap;
         }
@@ -340,42 +267,30 @@
             background-color: #f1f1f1;
         }
         .action-cell button {
-            padding: 5px 10px;
-            font-size: 0.85rem;
+            padding: 4px 8px;
+            font-size: 0.8rem;
             min-width: auto;
             margin-right: 5px;
         }
         .edit-btn { background-color: var(--primary-color); }
         .delete-btn { background-color: var(--danger-color); }
-        #clearDataBtn { background-color: var(--danger-color); }
     </style>
 </head>
 <body>
 
-    <div id="spinner" class="spinner-overlay" style="display: none;"><div class="spinner"></div></div>
-
-    <div id="passwordModal" class="modal-overlay">
+    <!-- Password Modal -->
+    <div id="passwordModal" class="modal-overlay visible">
         <div class="modal-content">
             <h2>Data Encryption</h2>
-            <p>Enter your password to create a new secure session. Your session will be remembered for 8 hours.</p>
-            <input type="password" id="passwordInput" placeholder="Data Password (min 8 chars)">
+            <p>Enter a password to encrypt and decrypt your data. This password is not stored and is required every session.</p>
+            <input type="password" id="passwordInput" placeholder="Data Password">
             <div class="modal-actions">
-                <button id="passwordSubmit">Create Session</button>
-            </div>
-        </div>
-    </div>
-    
-    <div id="resumeSessionModal" class="modal-overlay">
-        <div class="modal-content">
-            <h2>Resume Session</h2>
-            <p>Please enter your password to unlock your existing secure session.</p>
-            <input type="password" id="resumePasswordInput" placeholder="Data Password">
-            <div class="modal-actions">
-                <button id="resumePasswordSubmit">Unlock</button>
+                <button id="passwordSubmit">Unlock Data</button>
             </div>
         </div>
     </div>
 
+    <!-- Confirmation Modal -->
     <div id="confirmModal" class="modal-overlay">
         <div class="modal-content">
             <h2 id="confirmTitle">Are you sure?</h2>
@@ -388,145 +303,169 @@
     </div>
 
     <div class="main-content">
-        <header class="app-header">
-            <h1>Field Data Capture</h1>
-            <div class="header-controls">
-                <div id="statusIndicator">Online</div>
-                <button id="lockBtn">Lock App</button>
+        <h1>Field Data Capture</h1>
+
+        <form id="captureForm" novalidate>
+            <input type="hidden" id="recordId" name="id">
+
+            <!-- Form fields remain the same -->
+            <div class="field"><label for="workorderNo">Workorder No</label><input id="workorderNo" name="workorderNo" type="text" placeholder="Optional"></div>
+            <div class="field"><label for="zone">Zone</label><input id="zone" name="zone" type="text" placeholder="e.g., North"></div>
+            <div class="field"><label for="sector">Sector</label><input id="sector" name="sector" type="text" placeholder="e.g., A"></div>
+            <div class="field"><label for="cnc">CNC</label><input id="cnc" name="cnc" type="text"></div>
+            <div class="field"><label for="contractorName">Contractor Name or Source</label><input id="contractorName" name="contractorName" type="text"></div>
+            <div class="field"><label for="date">Date</label><input id="date" type="date" name="date"></div>
+            <div class="field"><label for="feederName">Feeder Name</label><input id="feederName" name="feederName" type="text"></div>
+            <div class="field"><label for="townshipName">Township Name</label><input id="townshipName" name="townshipName" type="text"></div>
+            <div class="field"><label for="transformerNo">Transformer No</label><input id="transformerNo" name="transformerNo" type="text"></div>
+            <div class="field"><label for="standNo">Stand No</label><input id="standNo" name="standNo" type="text"></div>
+            <div class="field"><label for="installationNo">Installation No</label><input id="installationNo" name="installationNo" type="text"></div>
+            <!-- DEBUG FIX: Changed id and for attributes from lat/lon to latitude/longitude to match the name attribute -->
+            <div class="field"><label for="latitude">Latitude (DD MM SS.SSS S/N)</label><input id="latitude" name="latitude" type="text" readonly></div>
+            <div class="field"><label for="longitude">Longitude (DD MM SS.SSS E/W)</label><input id="longitude" name="longitude" type="text" readonly></div>
+            <div class="field"><label for="access">Access</label><select id="access" name="access"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
+            <div class="field"><label for="atHome">At Home</label><select id="atHome" name="atHome"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
+            <div class="field"><label for="connected">Connected</label><select id="connected" name="connected"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
+            <div class="field"><label for="abandoned">Abandoned</label><select id="abandoned" name="abandoned"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
+            <div class="field"><label for="vandalised">Vandalised</label><select id="vandalised" name="vandalised"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
+            <div class="field"><label for="illegal">Illegal</label><select id="illegal" name="illegal"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
+            <div class="field"><label for="owner">Owner</label><select id="owner" name="owner"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
+            <div class="field"><label for="surname">Surname</label><input id="surname" name="surname" type="text"></div>
+            <div class="field"><label for="name">Name</label><input id="name" name="name" type="text"></div>
+            <div class="field"><label for="idNo">ID No</label><input id="idNo" name="idNo" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="e.g., 8501015000087"></div>
+            <div class="field"><label for="phoneCode">Phone Code</label><input id="phoneCode" name="phoneCode" type="tel" inputmode="numeric" pattern="[0-9]*" placeholder="e.g., +27"></div>
+            <div class="field"><label for="phoneNo">Phone No</label><input id="phoneNo" name="phoneNo" type="tel" inputmode="tel" placeholder="e.g., 821234567"></div>
+            <div class="field"><label for="normalVendor">Normal Vendor</label><select id="normalVendor" name="normalVendor"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
+            <div class="field"><label for="recentVendor">Most Recent Vendor</label><input id="recentVendor" name="recentVendor" type="text"></div>
+            <div class="field"><label for="meterNo">Meter No</label><input id="meterNo" name="meterNo" type="text"></div>
+            <div class="field"><label for="split">Split</label><select id="split" name="split"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
+            <div class="field"><label for="commonBaseMeter">Common/Non Common Base Meter</label><input id="commonBaseMeter" name="commonBaseMeter" type="text"></div>
+            <div class="field"><label for="edEcu">ED/ECU</label><input id="edEcu" name="edEcu" type="text"></div>
+            <div class="field"><label for="meterType">Meter Type</label><input id="meterType" name="meterType" type="text"></div>
+            <div class="field"><label for="tariffCode">Tariff Code</label><input id="tariffCode" name="tariffCode" type="text"></div>
+            <div class="field"><label for="ampLimit">Amp Limit</label><input id="ampLimit" name="ampLimit" type="number" inputmode="numeric" pattern="[0-9]*"></div>
+            <div class="field"><label for="supplyGroupCode">Supply Group Code</label><input id="supplyGroupCode" name="supplyGroupCode" type="text"></div>
+            <div class="field"><label for="magCard">Mag Card/Keypad</label><input id="magCard" name="magCard" type="text"></div>
+            <div class="field"><label for="stsOrProp">STS or Prop</label><input id="stsOrProp" name="stsOrProp" type="text"></div>
+            <div class="field"><label for="tampered">Tampered</label><select id="tampered" name="tampered"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
+            <div class="field"><label for="tamperMethod">Tamper Method</label><input id="tamperMethod" name="tamperMethod" type="text"></div>
+            <div class="field"><label for="removed">Removed</label><select id="removed" name="removed"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
+            <div class="field"><label for="tamperNotNo">Tamper Not No</label><input id="tamperNotNo" name="tamperNotNo" type="text"></div>
+            <div class="field"><label for="cardTrip">Card Trip</label><select id="cardTrip" name="cardTrip"><option value="">— Select —</option><option value="Pass">Pass</option><option value="Fail">Fail</option></select></div>
+            <div class="field"><label for="elTest">E/L Test</label><select id="elTest" name="elTest"><option value="">— Select —</option><option value="Pass">Pass</option><option value="Fail">Fail</option></select></div>
+            <div class="field"><label for="meterFaulty">Meter Faulty</label><select id="meterFaulty" name="meterFaulty"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
+            <div class="field"><label for="replaced">Replaced</label><select id="replaced" name="replaced"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
+            <div class="field"><label for="mmfNo">MMF No</label><input id="mmfNo" name="mmfNo" type="text"></div>
+            <div class="field"><label for="newMeterNo">New Meter No</label><input id="newMeterNo" name="newMeterNo" type="text"></div>
+            <div class="field"><label for="newMeterType">New Meter Type</label><input id="newMeterType" name="newMeterType" type="text"></div>
+            <div class="field"><label for="newMeterAmpLimit">New Meter Amp Limit</label><input id="newMeterAmpLimit" name="newMeterAmpLimit" type="number" inputmode="numeric" pattern="[0-9]*"></div>
+            <div class="field"><label for="newMeterCardTrip">New Meter Card Trip</label><select id="newMeterCardTrip" name="newMeterCardTrip"><option value="">— Select —</option><option value="Pass">Pass</option><option value="Fail">Fail</option></select></div>
+            <div class="field"><label for="newMeterElTest">New Meter E/L Test</label><select id="newMeterElTest" name="newMeterElTest"><option value="">— Select —</option><option value="Pass">Pass</option><option value="Fail">Fail</option></select></div>
+            <div class="field"><label for="sealed">Sealed</label><select id="sealed" name="sealed"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
+            <div class="field"><label for="sealNo">Seal No</label><input id="sealNo" name="sealNo" type="text"></div>
+            <div class="field"><label for="remarks">Remarks</label><textarea id="remarks" name="remarks"></textarea></div>
+
+            <div class="actions">
+                <button type="button" id="gpsBtn">Get GPS</button>
+                <button type="submit" id="submitBtn">Save Data</button>
+                <button type="button" id="viewDataBtn">View Data</button>
+                <button type="button" id="downloadOnlyBtn">Download</button>
+              
             </div>
-        </header>
+        </form>
 
-        <div class="container">
-            <form id="captureForm" novalidate>
-                <input type="hidden" id="recordId" name="id">
-                <div class="field"><label for="workorderNo">Workorder No</label><input id="workorderNo" name="workorderNo" type="text" placeholder="Optional"></div>
-                <div class="field"><label for="zone">Zone</label><input id="zone" name="zone" type="text" placeholder="e.g., North"></div>
-                <div class="field"><label for="sector">Sector</label><input id="sector" name="sector" type="text" placeholder="e.g., A"></div>
-                <div class="field"><label for="cnc">CNC</label><input id="cnc" name="cnc" type="text"></div>
-                <div class="field"><label for="contractorName">Contractor Name or Source</label><input id="contractorName" name="contractorName" type="text"></div>
-                <div class="field"><label for="date">Date</label><input id="date" type="date" name="date"></div>
-                <div class="field"><label for="feederName">Feeder Name</label><input id="feederName" name="feederName" type="text"></div>
-                <div class="field"><label for="townshipName">Township Name</label><input id="townshipName" name="townshipName" type="text"></div>
-                <div class="field"><label for="transformerNo">Transformer No</label><input id="transformerNo" name="transformerNo" type="text"></div>
-                <div class="field"><label for="standNo">Stand No</label><input id="standNo" name="standNo" type="text"></div>
-                <div class="field"><label for="installationNo">Installation No</label><input id="installationNo" name="installationNo" type="text"></div>
-                <div class="field"><label for="latitude">Latitude (DD MM SS.SSS S/N)</label><input id="latitude" name="latitude" type="text" readonly></div>
-                <div class="field"><label for="longitude">Longitude (DD MM SS.SSS E/W)</label><input id="longitude" name="longitude" type="text" readonly></div>
-                <div class="field"><label for="access">Access</label><select id="access" name="access"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
-                <div class="field"><label for="atHome">At Home</label><select id="atHome" name="atHome"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
-                <div class="field"><label for="connected">Connected</label><select id="connected" name="connected"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
-                <div class="field"><label for="abandoned">Abandoned</label><select id="abandoned" name="abandoned"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
-                <div class="field"><label for="vandalised">Vandalised</label><select id="vandalised" name="vandalised"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
-                <div class="field"><label for="illegal">Illegal</label><select id="illegal" name="illegal"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
-                <div class="field"><label for="owner">Owner</label><select id="owner" name="owner"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
-                <div class="field"><label for="surname">Surname</label><input id="surname" name="surname" type="text"></div>
-                <div class="field"><label for="name">Name</label><input id="name" name="name" type="text"></div>
-                <div class="field"><label for="idNo">ID No</label><input id="idNo" name="idNo" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="e.g., 8501015000087"></div>
-                <div class="field"><label for="phoneCode">Phone Code</label><input id="phoneCode" name="phoneCode" type="tel" inputmode="numeric" pattern="[0-9]*" placeholder="e.g., +27"></div>
-                <div class="field"><label for="phoneNo">Phone No</label><input id="phoneNo" name="phoneNo" type="tel" inputmode="tel" placeholder="e.g., 821234567"></div>
-                <div class="field"><label for="normalVendor">Normal Vendor</label><select id="normalVendor" name="normalVendor"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
-                <div class="field"><label for="recentVendor">Most Recent Vendor</label><input id="recentVendor" name="recentVendor" type="text"></div>
-                <div class="field"><label for="meterNo">Meter No</label><input id="meterNo" name="meterNo" type="text"></div>
-                <div class="field"><label for="split">Split</label><select id="split" name="split"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
-                <div class="field"><label for="commonBaseMeter">Common/Non Common Base Meter</label><input id="commonBaseMeter" name="commonBaseMeter" type="text"></div>
-                <div class="field"><label for="edEcu">ED/ECU</label><input id="edEcu" name="edEcu" type="text"></div>
-                <div class="field"><label for="meterType">Meter Type</label><input id="meterType" name="meterType" type="text"></div>
-                <div class="field"><label for="tariffCode">Tariff Code</label><input id="tariffCode" name="tariffCode" type="text"></div>
-                <div class="field"><label for="ampLimit">Amp Limit</label><input id="ampLimit" name="ampLimit" type="number" inputmode="numeric" pattern="[0-9]*"></div>
-                <div class="field"><label for="supplyGroupCode">Supply Group Code</label><input id="supplyGroupCode" name="supplyGroupCode" type="text"></div>
-                <div class="field"><label for="magCard">Mag Card/Keypad</label><input id="magCard" name="magCard" type="text"></div>
-                <div class="field"><label for="stsOrProp">STS or Prop</label><input id="stsOrProp" name="stsOrProp" type="text"></div>
-                <div class="field"><label for="tampered">Tampered</label><select id="tampered" name="tampered"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
-                <div class="field"><label for="tamperMethod">Tamper Method</label><input id="tamperMethod" name="tamperMethod" type="text"></div>
-                <div class="field"><label for="removed">Removed</label><select id="removed" name="removed"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
-                <div class="field"><label for="tamperNotNo">Tamper Not No</label><input id="tamperNotNo" name="tamperNotNo" type="text"></div>
-                <div class="field"><label for="cardTrip">Card Trip</label><select id="cardTrip" name="cardTrip"><option value="">— Select —</option><option value="Pass">Pass</option><option value="Fail">Fail</option></select></div>
-                <div class="field"><label for="elTest">E/L Test</label><select id="elTest" name="elTest"><option value="">— Select —</option><option value="Pass">Pass</option><option value="Fail">Fail</option></select></div>
-                <div class="field"><label for="meterFaulty">Meter Faulty</label><select id="meterFaulty" name="meterFaulty"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
-                <div class="field"><label for="replaced">Replaced</label><select id="replaced" name="replaced"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
-                <div class="field"><label for="mmfNo">MMF No</label><input id="mmfNo" name="mmfNo" type="text"></div>
-                <div class="field"><label for="newMeterNo">New Meter No</label><input id="newMeterNo" name="newMeterNo" type="text"></div>
-                <div class="field"><label for="newMeterType">New Meter Type</label><input id="newMeterType" name="newMeterType" type="text"></div>
-                <div class="field"><label for="newMeterAmpLimit">New Meter Amp Limit</label><input id="newMeterAmpLimit" name="newMeterAmpLimit" type="number" inputmode="numeric" pattern="[0-9]*"></div>
-                <div class="field"><label for="newMeterCardTrip">New Meter Card Trip</label><select id="newMeterCardTrip" name="newMeterCardTrip"><option value="">— Select —</option><option value="Pass">Pass</option><option value="Fail">Fail</option></select></div>
-                <div class="field"><label for="newMeterElTest">New Meter E/L Test</label><select id="newMeterElTest" name="newMeterElTest"><option value="">— Select —</option><option value="Pass">Pass</option><option value="Fail">Fail</option></select></div>
-                <div class="field"><label for="sealed">Sealed</label><select id="sealed" name="sealed"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
-                <div class="field"><label for="sealNo">Seal No</label><input id="sealNo" name="sealNo" type="text"></div>
-                <div class="field">
-                    <div class="field-header">
-                        <label for="remarks">Remarks</label>
-                        <button type="button" id="generateRemarksBtn">✨ Generate Remarks</button>
-                    </div>
-                    <textarea id="remarks" name="remarks"></textarea>
-                </div>
+        <div id="message" role="alert" aria-live="polite"></div>
 
-                <div class="actions">
-                    <button type="button" id="gpsBtn">Get GPS</button>
-                    <button type="submit" id="submitBtn">Save Data</button>
-                    <button type="button" id="viewDataBtn">View Data</button>
-                    <button type="button" id="downloadBtn">Download</button>
-                </div>
-            </form>
-
-            <div id="savedDataSection">
-                <h2>Saved Field Entries</h2>
-                <div id="dataCounts"></div>
-                <div id="savedDataTableContainer">
-                    <table id="savedDataTable">
-                        <thead id="savedTableHeader"></thead>
-                        <tbody id="savedTableBody"></tbody>
-                    </table>
-                </div>
-                <div class="actions">
-                    <button type="button" id="clearDataBtn">Clear All Saved Data</button>
-                    <button type="button" id="closeViewDataBtn">Close View</button>
-                </div>
+        <div id="savedDataSection">
+            <h2>Saved Field Entries</h2>
+            <div id="dataCounts"></div>
+            <div id="savedDataTableContainer">
+                <table id="savedDataTable">
+                    <thead id="savedTableHeader"></thead>
+                    <tbody id="savedTableBody"></tbody>
+                </table>
+            </div>
+            <div id="savedDataActions">
+                <button type="button" id="clearDataBtn">Clear All Saved Data</button>
+                <button type="button" id="closeViewDataBtn">Close View</button>
             </div>
         </div>
     </div>
 
     <script>
         const DB_NAME = 'FieldDataDB';
-        const DB_VERSION = 3; 
-        const DATA_STORE_NAME = 'records';
-        const SESSION_STORE_NAME = 'session';
-        // DEBUG FIX: Session duration changed from 12 to 8 hours
-        const SESSION_DURATION_MS = 8 * 60 * 60 * 1000; // 8 hours
+        const DB_VERSION = 2; // Incremented version for schema change
+        const STORE_NAME = 'records';
         let db;
-        let encryptionKey; 
-
-        // --- SPINNER UTILITY ---
-        const spinner = document.getElementById('spinner');
-        const showSpinner = () => spinner.style.display = 'flex';
-        const hideSpinner = () => spinner.style.display = 'none';
+        let encryptionKey; // This will hold the key for the session
 
         // --- CRYPTOGRAPHY FUNCTIONS ---
+        // Derives a key from a password using PBKDF2
         async function getKey(password, salt) {
             const enc = new TextEncoder();
-            const keyMaterial = await crypto.subtle.importKey("raw", enc.encode(password), { name: "PBKDF2" }, false, ["deriveKey"]);
-            return crypto.subtle.deriveKey({ name: "PBKDF2", salt, iterations: 100000, hash: "SHA-256" }, keyMaterial, { name: "AES-GCM", length: 256 }, true, ["encrypt", "decrypt"]);
+            const keyMaterial = await window.crypto.subtle.importKey(
+                "raw",
+                enc.encode(password),
+                { name: "PBKDF2" },
+                false,
+                ["deriveKey"]
+            );
+            return window.crypto.subtle.deriveKey(
+                {
+                    "name": "PBKDF2",
+                    salt: salt,
+                    "iterations": 100000,
+                    "hash": "SHA-256"
+                },
+                keyMaterial,
+                { "name": "AES-GCM", "length": 256 },
+                true,
+                ["encrypt", "decrypt"]
+            );
         }
 
-        async function encryptData(dataObject, key) {
-            if (!key) throw new Error("Encryption key is not set.");
-            const iv = crypto.getRandomValues(new Uint8Array(12));
-            const encodedData = new TextEncoder().encode(JSON.stringify(dataObject));
-            const encryptedContent = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, encodedData);
-            return { iv: Array.from(iv), data: Array.from(new Uint8Array(encryptedContent)) };
+        // Encrypts a JSON object
+        async function encryptData(dataObject) {
+            if (!encryptionKey) throw new Error("Encryption key is not set.");
+            const iv = window.crypto.getRandomValues(new Uint8Array(12)); // Initialization Vector
+            const enc = new TextEncoder();
+            const encodedData = enc.encode(JSON.stringify(dataObject));
+            
+            const encryptedContent = await window.crypto.subtle.encrypt(
+                { name: "AES-GCM", iv: iv },
+                encryptionKey,
+                encodedData
+            );
+            
+            // Combine iv and encrypted data for storage
+            const encryptedPackage = {
+                iv: Array.from(iv), // Convert Uint8Array to array for JSON compatibility
+                data: Array.from(new Uint8Array(encryptedContent))
+            };
+            return encryptedPackage;
         }
 
-        async function decryptData(encryptedPackage, key) {
-            if (!key) throw new Error("Encryption key is not set.");
+        // Decrypts an encrypted package
+        async function decryptData(encryptedPackage) {
+            if (!encryptionKey) throw new Error("Encryption key is not set.");
             try {
                 const iv = new Uint8Array(encryptedPackage.iv);
-                const data = new Uint8Array(encryptedPackage.data);
-                const decryptedContent = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, data);
-                return JSON.parse(new TextDecoder().decode(decryptedContent));
+                const encryptedContent = new Uint8Array(encryptedPackage.data);
+
+                const decryptedContent = await window.crypto.subtle.decrypt(
+                    { name: "AES-GCM", iv: iv },
+                    encryptionKey,
+                    encryptedContent
+                );
+
+                const dec = new TextDecoder();
+                return JSON.parse(dec.decode(decryptedContent));
             } catch (e) {
                 console.error("Decryption failed:", e);
-                throw new Error("Incorrect password or corrupted data.");
+                throw new Error("Decryption failed. Check password or data integrity.");
             }
         }
+
 
         // --- DATABASE FUNCTIONS ---
         function initDb() {
@@ -534,153 +473,92 @@
                 const request = indexedDB.open(DB_NAME, DB_VERSION);
                 request.onupgradeneeded = (event) => {
                     db = event.target.result;
-                    if (!db.objectStoreNames.contains(DATA_STORE_NAME)) {
-                        db.createObjectStore(DATA_STORE_NAME, { keyPath: 'id', autoIncrement: true });
-                    }
-                    if (!db.objectStoreNames.contains(SESSION_STORE_NAME)) {
-                        db.createObjectStore(SESSION_STORE_NAME, { keyPath: 'id' });
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
                     }
                 };
-                request.onsuccess = (event) => { db = event.target.result; resolve(db); };
+                request.onsuccess = (event) => {
+                    db = event.target.result;
+                    resolve(db);
+                };
                 request.onerror = (event) => reject(event.target.error);
             });
         }
 
-        function getFromDb(storeName, key) {
+        function addRecord(encryptedRecord) {
             return new Promise((resolve, reject) => {
-                const tx = db.transaction(storeName, 'readonly');
-                const store = tx.objectStore(storeName);
-                const request = store.get(key);
-                request.onsuccess = () => resolve(request.result);
-                request.onerror = () => reject(request.error);
-            });
-        }
-
-        function getAllFromDb(storeName) {
-            return new Promise((resolve, reject) => {
-                const tx = db.transaction(storeName, 'readonly');
-                const store = tx.objectStore(storeName);
-                const request = store.getAll();
-                request.onsuccess = () => resolve(request.result);
-                request.onerror = () => reject(request.error);
-            });
-        }
-
-        function putInDb(storeName, object) {
-            return new Promise((resolve, reject) => {
-                const tx = db.transaction(storeName, 'readwrite');
-                const store = tx.objectStore(storeName);
-                const request = store.put(object);
-                request.onsuccess = () => resolve(request.result);
-                request.onerror = () => reject(request.error);
-            });
-        }
-
-        function deleteFromDb(storeName, key) {
-            return new Promise((resolve, reject) => {
-                const tx = db.transaction(storeName, 'readwrite');
-                const store = tx.objectStore(storeName);
-                const request = store.delete(key);
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                // The record is now an object { id, encryptedData }
+                const request = store.add({ encryptedData: encryptedRecord });
                 request.onsuccess = () => resolve();
-                request.onerror = () => reject(request.error);
+                request.onerror = (event) => reject(event.target.error);
+            });
+        }
+        
+        function updateRecord(id, encryptedRecord) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.put({ id: id, encryptedData: encryptedRecord });
+                request.onsuccess = () => resolve();
+                request.onerror = (event) => reject(event.target.error);
             });
         }
 
-        function clearDbStore(storeName) {
-             return new Promise((resolve, reject) => {
-                const tx = db.transaction(storeName, 'readwrite');
-                const store = tx.objectStore(storeName);
+        function getRecord(id) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readonly');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.get(id);
+                request.onsuccess = (event) => resolve(event.target.result);
+                request.onerror = (event) => reject(event.target.error);
+            });
+        }
+
+        // Other DB functions (delete, getAll, clearAll) remain largely the same
+        function deleteRecord(id) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.delete(id);
+                request.onsuccess = () => resolve();
+                request.onerror = (event) => reject(event.target.error);
+            });
+        }
+
+        function getAllRecords() {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readonly');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.getAll();
+                request.onsuccess = (event) => resolve(event.target.result);
+                request.onerror = (event) => reject(event.target.error);
+            });
+        }
+
+        function clearAllRecords() {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
                 const request = store.clear();
                 request.onsuccess = () => resolve();
-                request.onerror = () => reject(request.error);
+                request.onerror = (event) => reject(event.target.error);
             });
         }
 
-        // --- SESSION MANAGEMENT ---
-        async function createSession(password) {
-            const salt = crypto.getRandomValues(new Uint8Array(16));
-            const key = await getKey(password, salt);
-            const exportedKey = await crypto.subtle.exportKey("jwk", key);
-            
-            const sessionData = {
-                key: exportedKey,
-                timestamp: Date.now()
-            };
-
-            const masterKey = await getKey(password, new TextEncoder().encode("master-salt"));
-            const encryptedSession = await encryptData(sessionData, masterKey);
-
-            await putInDb(SESSION_STORE_NAME, { id: 'user-session', data: encryptedSession, salt: Array.from(salt) });
-            encryptionKey = key;
-        }
-        
-        function showResumeSessionModal() {
-            return new Promise(resolve => {
-                const modal = document.getElementById('resumeSessionModal');
-                const input = document.getElementById('resumePasswordInput');
-                const submitBtn = document.getElementById('resumePasswordSubmit');
-                modal.classList.add('visible');
-                input.focus();
-
-                const listener = () => {
-                    resolve(input.value);
-                    modal.classList.remove('visible');
-                    submitBtn.removeEventListener('click', listener);
-                    input.value = '';
-                };
-                submitBtn.addEventListener('click', listener);
-                input.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') submitBtn.click();
-                });
-            });
-        }
-
-        async function validateSession() {
-            const storedSession = await getFromDb(SESSION_STORE_NAME, 'user-session');
-            if (!storedSession) return false;
-
-            const password = await showResumeSessionModal();
-            if (!password) return false;
-
-            showSpinner();
-            try {
-                const masterKey = await getKey(password, new TextEncoder().encode("master-salt"));
-                const sessionData = await decryptData(storedSession.data, masterKey);
-                
-                if (Date.now() - sessionData.timestamp > SESSION_DURATION_MS) {
-                    await deleteFromDb(SESSION_STORE_NAME, 'user-session');
-                    showMessage('Session expired. Please create a new one.', 'info');
-                    return false;
-                }
-
-                encryptionKey = await crypto.subtle.importKey("jwk", sessionData.key, { name: "AES-GCM" }, true, ["encrypt", "decrypt"]);
-                return true;
-            } catch (e) {
-                showMessage("Incorrect password.", "error");
-                return false;
-            } finally {
-                hideSpinner();
-            }
-        }
-        
-        async function lockApp() {
-            const confirmed = await showConfirm("Lock Application", "Are you sure you want to lock the app? You will need your password to unlock it again.");
-            if (confirmed) {
-                await deleteFromDb(SESSION_STORE_NAME, 'user-session');
-                location.reload();
-            }
-        }
-
-        // --- UI & OTHER FUNCTIONS ---
+        // --- UI FEEDBACK & MODALS ---
         const messageElement = document.getElementById('message');
         function showMessage(msg, type = 'info', duration = 3000) {
             messageElement.textContent = msg;
             messageElement.className = 'show';
-            let bgColor = 'rgba(0, 0, 0, 0.85)';
+            let bgColor = 'rgba(0, 0, 0, 0.8)';
             if (type === 'error') bgColor = 'rgba(220, 53, 69, 0.9)';
             else if (type === 'success') bgColor = 'rgba(40, 167, 69, 0.9)';
             messageElement.style.backgroundColor = bgColor;
-            setTimeout(() => { messageElement.classList.remove('show'); }, duration);
+            setTimeout(() => {
+                messageElement.classList.remove('show');
+            }, duration);
         }
 
         const confirmModal = document.getElementById('confirmModal');
@@ -689,11 +567,18 @@
                 document.getElementById('confirmTitle').textContent = title;
                 document.getElementById('confirmMessage').textContent = message;
                 confirmModal.classList.add('visible');
-                document.getElementById('confirmYesBtn').onclick = () => { confirmModal.classList.remove('visible'); resolve(true); };
-                document.getElementById('confirmNoBtn').onclick = () => { confirmModal.classList.remove('visible'); resolve(false); };
+                document.getElementById('confirmYesBtn').onclick = () => {
+                    confirmModal.classList.remove('visible');
+                    resolve(true);
+                };
+                document.getElementById('confirmNoBtn').onclick = () => {
+                    confirmModal.classList.remove('visible');
+                    resolve(false);
+                };
             });
         }
 
+        // --- GPS & DATE ---
         function toDMS(dec, type) {
             const abs = Math.abs(dec);
             const deg = Math.floor(abs);
@@ -705,18 +590,21 @@
         }
         
         function setTodaysDate() {
-            document.getElementById('date').valueAsDate = new Date();
+            const today = new Date();
+            document.getElementById('date').valueAsDate = today;
         }
 
+        // --- VALIDATION ---
         const alwaysRequiredFields = ['cnc', 'date', 'feederName', 'transformerNo'];
+        // DEBUG FIX: Changed 'lat', 'lon' to 'latitude', 'longitude' to match the input names
         const conditionalRequiredFields = ['phoneCode', 'phoneNo', 'meterNo', 'meterType', 'supplyGroupCode', 'cardTrip', 'elTest', 'sealed', 'sealNo', 'latitude', 'longitude'];
         
         function updateRequiredVisuals() {
             const form = document.getElementById('captureForm');
             const isConditionMet = ['access', 'atHome', 'connected'].some(id => form.elements[id].value === 'Yes');
             form.querySelectorAll('.required-star').forEach(star => star.remove());
-            const addStar = (el) => {
-                const label = el.closest('.field')?.querySelector('label');
+            const addStar = (element) => {
+                const label = element.closest('.field')?.querySelector('label');
                 if (label && !label.querySelector('.required-star')) {
                     const star = document.createElement('span');
                     star.className = 'required-star';
@@ -735,25 +623,38 @@
             const data = new FormData(form);
             const errors = [];
             const isConditionMet = ['access', 'atHome', 'connected'].some(id => form.elements[id].value === 'Yes');
-            const checkField = (id, label) => { if (!data.get(id)?.trim()) errors.push(`${label} is required.`); };
-            
-            alwaysRequiredFields.forEach(id => checkField(id, form.querySelector(`label[for=${id}]`).textContent.replace('*','')));
+            const checkField = (id, label) => {
+                if (!data.get(id)?.trim()) {
+                    errors.push(`${label} is required.`);
+                }
+            };
+            alwaysRequiredFields.forEach(id => {
+                const label = form.querySelector(`label[for=${id}]`).textContent.replace('*','');
+                checkField(id, label);
+            });
             if (isConditionMet) {
-                conditionalRequiredFields.forEach(id => checkField(id, form.querySelector(`label[for=${id}]`).textContent.replace('*','').replace(/ \(.+\)/, '')));
+                conditionalRequiredFields.forEach(id => {
+                    const label = form.querySelector(`label[for=${id}]`).textContent.replace('*','').replace(/ \(.+\)/, '');
+                    checkField(id, label);
+                });
             }
-            if (errors.length > 0) { showMessage(errors.join('\n'), 'error', 5000); return false; }
+            if (errors.length > 0) {
+                showMessage(errors.join('\n'), 'error', 5000);
+                return false;
+            }
             return true;
         }
 
+        // --- FORM & DATA HANDLING (NOW WITH ENCRYPTION) ---
         async function handleFormSubmit(e) {
             e.preventDefault();
             if (!validateForm()) return;
-            showSpinner();
+
             const form = e.target;
             const formData = new FormData(form);
             const data = Object.fromEntries(formData.entries());
             const recordId = data.id ? parseInt(data.id, 10) : null;
-            delete data.id;
+            delete data.id; // Don't encrypt the ID
 
             if (data.date) {
                 const d = new Date(data.date);
@@ -761,15 +662,18 @@
             }
 
             try {
-                const encryptedData = await encryptData(data, encryptionKey);
-                const recordToSave = recordId ? { id: recordId, encryptedData } : { encryptedData };
-                await putInDb(DATA_STORE_NAME, recordToSave);
-                showMessage(recordId ? 'Data updated successfully ✔' : 'Data saved and encrypted successfully ✔', 'success');
+                const encryptedData = await encryptData(data);
+                if (recordId) {
+                    await updateRecord(recordId, encryptedData);
+                    showMessage('Data updated successfully ✔', 'success');
+                } else {
+                    await addRecord(encryptedData);
+                    showMessage('Data saved and encrypted successfully ✔', 'success');
+                }
                 resetForm();
             } catch (error) {
-                showMessage(`Failed to save data: ${error.message}`, 'error');
-            } finally {
-                hideSpinner();
+                console.error('Failed to encrypt/save record:', error);
+                showMessage('Failed to save data. Check console for errors.', 'error');
             }
         }
         
@@ -783,54 +687,54 @@
         }
 
         async function editEntry(id) {
-            showSpinner();
             try {
-                const encryptedRecord = await getFromDb(DATA_STORE_NAME, id);
+                const encryptedRecord = await getRecord(id);
                 if (!encryptedRecord) throw new Error("Record not found");
-                const record = await decryptData(encryptedRecord.encryptedData, encryptionKey);
+
+                const record = await decryptData(encryptedRecord.encryptedData);
                 
                 const form = document.getElementById('captureForm');
                 for (const key in record) {
-                    if (form.elements[key]) form.elements[key].value = record[key];
+                    if (form.elements[key]) {
+                        form.elements[key].value = record[key];
+                    }
                 }
-                if (record.date) form.elements.date.value = record.date.replace(/\//g, '-');
+                if (record.date) {
+                    form.elements.date.value = record.date.replace(/\//g, '-');
+                }
                 document.getElementById('recordId').value = id;
                 document.getElementById('submitBtn').textContent = 'Update Data';
                 updateRequiredVisuals();
-                document.getElementById('savedDataSection').classList.remove('visible');
+                savedDataSection.classList.remove('visible');
                 window.scrollTo(0, 0);
                 showMessage('Editing entry. Scroll up to see the form.', 'info');
             } catch (error) {
                 showMessage(`Error loading data for editing: ${error.message}`, 'error');
-            } finally {
-                hideSpinner();
             }
         }
         
         async function deleteEntry(id) {
             const confirmed = await showConfirm('Delete Entry', 'Are you sure you want to delete this entry? This cannot be undone.');
             if (confirmed) {
-                showSpinner();
                 try {
-                    await deleteFromDb(DATA_STORE_NAME, id);
+                    await deleteRecord(id);
                     showMessage('Entry deleted successfully.', 'success');
-                    await displaySavedData();
+                    displaySavedData();
                 } catch (error) {
                     showMessage('Error deleting entry.', 'error');
-                } finally {
-                    hideSpinner();
                 }
             }
         }
 
+        // --- EXPORT & VIEW DATA (NOW WITH DECRYPTION) ---
         const savedDataSection = document.getElementById('savedDataSection');
         const formFieldOrder = Array.from(document.getElementById('captureForm').elements)
-            .map(el => el.name).filter((name, i, self) => name && self.indexOf(name) === i && name !== 'id');
+            .map(el => el.name)
+            .filter((name, index, self) => name && self.indexOf(name) === index && name !== 'id');
 
         async function displaySavedData() {
-            showSpinner();
             try {
-                const encryptedRecords = await getAllFromDb(DATA_STORE_NAME);
+                const encryptedRecords = await getAllRecords();
                 if (encryptedRecords.length === 0) {
                     showMessage('No saved data to display.', 'info');
                     savedDataSection.classList.remove('visible');
@@ -840,17 +744,22 @@
                 const records = [];
                 for (const rec of encryptedRecords) {
                     try {
-                        const decrypted = await decryptData(rec.encryptedData, encryptionKey);
-                        decrypted.id = rec.id;
+                        const decrypted = await decryptData(rec.encryptedData);
+                        decrypted.id = rec.id; // Re-attach the ID post-decryption
                         records.push(decrypted);
                     } catch (e) {
                          showMessage('One or more records failed to decrypt. Incorrect password?', 'error');
-                         return;
+                         console.error("Decryption failure for record id:", rec.id);
+                         return; // Stop processing if a record fails
                     }
                 }
 
-                let tamperedCount = records.filter(r => r.tampered === 'Yes').length;
-                let faultyCount = records.filter(r => r.meterFaulty === 'Yes').length;
+                let tamperedCount = 0;
+                let faultyCount = 0;
+                records.forEach(rec => {
+                    if (rec.tampered === 'Yes') tamperedCount++;
+                    if (rec.meterFaulty === 'Yes') faultyCount++;
+                });
                 document.getElementById('dataCounts').innerHTML = 
                     `Total Entries: <span>${records.length}</span> | Tampered: <span>${tamperedCount}</span> | Meter Faulty: <span>${faultyCount}</span>`;
                 
@@ -859,13 +768,21 @@
                 tableHeader.innerHTML = '';
                 tableBody.innerHTML = '';
                 const headerRow = document.createElement('tr');
-                headerRow.innerHTML = '<th>#</th>' + formFieldOrder.map(key => `<th>${document.querySelector(`label[for="${key}"]`)?.textContent.replace('*','')}</th>`).join('') + '<th>Actions</th>';
+                headerRow.innerHTML = '<th>#</th>';
+                formFieldOrder.forEach(key => {
+                    const label = document.querySelector(`label[for="${key}"]`)?.textContent || key;
+                    headerRow.innerHTML += `<th>${label.replace('*','')}</th>`;
+                });
+                headerRow.innerHTML += '<th>Actions</th>';
                 tableHeader.appendChild(headerRow);
                 
                 records.forEach((record, index) => {
                     const tr = document.createElement('tr');
-                    tr.innerHTML = `<td>${index + 1}</td>` + formFieldOrder.map(key => `<td>${record[key] || ''}</td>`).join('') + 
-                    `<td class="action-cell">
+                    tr.innerHTML = `<td>${index + 1}</td>`;
+                    formFieldOrder.forEach(key => {
+                        tr.innerHTML += `<td>${record[key] || ''}</td>`;
+                    });
+                    tr.innerHTML += `<td class="action-cell">
                         <button class="edit-btn" onclick="editEntry(${record.id})">Edit</button>
                         <button class="delete-btn" onclick="deleteEntry(${record.id})">Delete</button>
                     </td>`;
@@ -875,140 +792,114 @@
                 savedDataSection.classList.add('visible');
             } catch (error) {
                 showMessage(`Failed to load saved data: ${error.message}`, 'error');
-            } finally {
-                hideSpinner();
             }
         }
         
         async function performDownload() {
-            showSpinner();
-            try {
-                const encryptedRecords = await getAllFromDb(DATA_STORE_NAME);
-                if (encryptedRecords.length === 0) {
-                    showMessage('No data to export.', 'info');
+            const encryptedRecords = await getAllRecords();
+            if (encryptedRecords.length === 0) {
+                showMessage('No data to export.', 'info');
+                return false;
+            }
+
+            const records = [];
+            for (const rec of encryptedRecords) {
+                try {
+                    records.push(await decryptData(rec.encryptedData));
+                } catch(e) {
+                    showMessage('Could not decrypt all data for export. Incorrect password?', 'error');
                     return false;
                 }
+            }
 
-                const records = [];
-                for (const rec of encryptedRecords) {
-                    try {
-                        records.push(await decryptData(rec.encryptedData, encryptionKey));
-                    } catch(e) {
-                        showMessage('Could not decrypt all data for export. Incorrect password?', 'error');
-                        return false;
-                    }
+            const map = {};
+            formFieldOrder.forEach(key => {
+                map[key] = document.querySelector(`label[for="${key}"]`)?.textContent.replace('*','') || key;
+            });
+            const formatted = records.map(rec => {
+                const obj = {};
+                for (const k in rec) {
+                    if (k !== 'id') obj[map[k] || k] = rec[k];
                 }
+                return obj;
+            });
 
-                const map = {};
-                formFieldOrder.forEach(key => { map[key] = document.querySelector(`label[for="${key}"]`)?.textContent.replace('*','') || key; });
-                const formatted = records.map(rec => {
-                    const obj = {};
-                    formFieldOrder.forEach(k => obj[map[k]] = rec[k] || '');
-                    return obj;
-                });
-
-                const ws = XLSX.utils.json_to_sheet(formatted);
+            try {
+                const ws = XLSX.utils.json_to_sheet(formatted, { header: formFieldOrder.map(k => map[k]) });
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, 'FieldData');
                 XLSX.writeFile(wb, 'Field_Data.xlsx');
                 showMessage('Data exported successfully!', 'success');
                 return true;
             } catch (error) {
-                 showMessage(`Error during export: ${error.message}`, 'error');
+                showMessage('Error exporting data to Excel.', 'error');
                 return false;
-            } finally {
-                hideSpinner();
             }
         }
 
-        document.getElementById('downloadBtn').addEventListener('click', async () => {
-            const records = await getAllFromDb(DATA_STORE_NAME);
+        document.getElementById('downloadOnlyBtn').addEventListener('click', async () => {
+            const records = await getAllRecords();
             if (records.length === 0) return showMessage('No data to export.', 'info');
             const confirmed = await showConfirm('Download Data', `You have ${records.length} entries. Do you want to download the Excel file?`);
             if (confirmed) await performDownload();
             else showMessage('Download cancelled.', 'info');
         });
-        
-        async function initializeApp() {
-            showSpinner();
-            try {
-                await initDb();
-                const storedSession = await getFromDb(SESSION_STORE_NAME, 'user-session');
-                let sessionValid = false;
-                
-                if (storedSession) {
-                    sessionValid = await validateSession();
-                }
 
-                if (!sessionValid) {
-                    document.getElementById('passwordModal').classList.add('visible');
-                    document.getElementById('passwordInput').focus();
-                } else {
-                    document.getElementById('passwordModal').classList.remove('visible');
-                    document.getElementById('resumeSessionModal').classList.remove('visible');
-                    document.querySelector('.main-content').style.display = 'block';
-                    setTodaysDate();
-                    updateRequiredVisuals();
-                    if (navigator.geolocation) {
-                        navigator.geolocation.getCurrentPosition(
-                            pos => {
-                                document.getElementById('latitude').value = toDMS(pos.coords.latitude, 'latitude');
-                                document.getElementById('longitude').value = toDMS(pos.coords.longitude, 'longitude');
-                                updateRequiredVisuals();
-                            },
-                            err => console.warn('Could not get initial GPS.', err),
-                            { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
-                        );
-                    }
+        document.getElementById('exportBtn').addEventListener('click', async () => {
+            const recordsToExport = await getAllRecords();
+            if (recordsToExport.length === 0) return showMessage('No data to export.', 'info');
+            const downloadConfirmed = await showConfirm('Download Data', `You have ${recordsToExport.length} entries. Do you want to download the Excel file?`);
+            if (!downloadConfirmed) return showMessage('Download cancelled.', 'info');
+            
+            const success = await performDownload();
+            if (success) {
+                const clearConfirmed = await showConfirm('Clear Data', 'Data has been downloaded. Do you want to clear all saved entries?');
+                if (clearConfirmed) {
+                    await clearAllRecords();
+                    savedDataSection.classList.remove('visible');
+                    showMessage('All saved data has been cleared.', 'success');
                 }
-            } catch (e) {
-                showMessage(`Initialization failed: ${e.message}`, 'error');
-            } finally {
-                hideSpinner();
             }
-        }
-        
-        window.addEventListener('load', () => {
-             // Note: The 'service-worker.js' file is referenced but not provided. This will cause a 404 error.
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('service-worker.js')
-                    .then(() => console.log('Service Worker Registered'))
-                    .catch(err => console.error('Service Worker Registration Failed:', err));
-            }
-            initializeApp();
         });
-        
+
+        // --- INITIALIZATION & EVENT LISTENERS ---
         document.getElementById('passwordSubmit').addEventListener('click', async () => {
             const passwordInput = document.getElementById('passwordInput');
             if (passwordInput.value.length < 8) {
                 return showMessage('Password must be at least 8 characters.', 'error');
             }
-            showSpinner();
+
             try {
-                await createSession(passwordInput.value);
-                document.getElementById('passwordModal').classList.remove('visible');
+                // A static salt is not ideal, but acceptable for this offline-first use case.
+                // In a real app, this would be unique per user and stored on a server.
+                const salt = new TextEncoder().encode("a-static-salt-for-the-pwa");
+                encryptionKey = await getKey(passwordInput.value, salt);
                 
+                document.getElementById('passwordModal').classList.remove('visible');
                 document.querySelector('.main-content').style.display = 'block';
+                
+                await initDb();
                 setTodaysDate();
                 updateRequiredVisuals();
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(
                         pos => {
+                            // DEBUG FIX: Changed getElementById to use 'latitude' and 'longitude'
                             document.getElementById('latitude').value = toDMS(pos.coords.latitude, 'latitude');
                             document.getElementById('longitude').value = toDMS(pos.coords.longitude, 'longitude');
+                            showMessage('Initial GPS acquired.', 'success', 2000);
                             updateRequiredVisuals();
                         },
-                        err => console.warn('Could not get initial GPS.', err),
+                        err => showMessage('Could not get initial GPS.', 'info', 4000),
                         { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
                     );
                 }
             } catch (e) {
-                showMessage(`Login failed: ${e.message}`, 'error');
-            } finally {
-                hideSpinner();
+                showMessage('Could not initialize encryption. See console.', 'error');
+                console.error(e);
             }
         });
-        
+
         document.getElementById('passwordInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') document.getElementById('passwordSubmit').click();
         });
@@ -1019,6 +910,7 @@
             showMessage('Getting GPS...', 'info', 5000);
             navigator.geolocation.getCurrentPosition(
                 pos => {
+                    // DEBUG FIX: Changed getElementById to use 'latitude' and 'longitude'
                     document.getElementById('latitude').value = toDMS(pos.coords.latitude, 'latitude');
                     document.getElementById('longitude').value = toDMS(pos.coords.longitude, 'longitude');
                     showMessage('GPS acquired successfully!', 'success');
@@ -1044,113 +936,18 @@
         document.getElementById('clearDataBtn').addEventListener('click', async () => {
             const confirmed = await showConfirm('Clear All Data', 'Are you sure you want to clear ALL saved data? This cannot be undone.');
             if (confirmed) {
-                showSpinner();
-                await clearDbStore(DATA_STORE_NAME);
-                hideSpinner();
-                savedDataSection.classList.remove('visible');
-                showMessage('All saved data cleared successfully!', 'success');
+                try {
+                    await clearAllRecords();
+                    savedDataSection.classList.remove('visible');
+                    showMessage('All saved data cleared successfully!', 'success');
+                } catch (error) {
+                    showMessage('Failed to clear all data.', 'error');
+                }
             }
         });
         
         ['access', 'atHome', 'connected'].forEach(id => {
             document.getElementById(id).addEventListener('change', updateRequiredVisuals);
-        });
-        
-        document.getElementById('lockBtn').addEventListener('click', lockApp);
-
-        const updateOnlineStatus = () => {
-            const statusIndicator = document.getElementById('statusIndicator');
-            if (navigator.onLine) {
-                statusIndicator.textContent = 'Online';
-                statusIndicator.classList.remove('offline');
-            } else {
-                statusIndicator.textContent = 'Offline';
-                statusIndicator.classList.add('offline');
-            }
-        };
-
-        window.addEventListener('online', updateOnlineStatus);
-        window.addEventListener('offline', updateOnlineStatus);
-        updateOnlineStatus();
-
-        // --- GEMINI API FUNCTION ---
-        document.getElementById('generateRemarksBtn').addEventListener('click', async () => {
-            if (!navigator.onLine) {
-                return showMessage('This feature requires an internet connection.', 'info');
-            }
-
-            const form = document.getElementById('captureForm');
-            const data = Object.fromEntries(new FormData(form).entries());
-            
-            const keyPoints = {
-                "Meter Faulty": data.meterFaulty,
-                "Tampered": data.tampered,
-                "Tamper Method": data.tamperMethod,
-                "Meter Replaced": data.replaced,
-                "New Meter No": data.newMeterNo,
-                "Card Trip Test": data.cardTrip,
-                "E/L Test": data.elTest,
-                "Sealed": data.sealed,
-                "Seal No": data.sealNo,
-                "Vandalised": data.vandalised,
-                "Illegal Connection": data.illegal
-            };
-
-            let context = "Key findings from the site visit:\n";
-            for (const [key, value] of Object.entries(keyPoints)) {
-                if (value && value.toLowerCase() !== 'no' && value.toLowerCase() !== 'pass') {
-                    context += `- ${key}: ${value}\n`;
-                }
-            }
-
-            if (context === "Key findings from the site visit:\n") {
-                return showMessage("No significant data to generate remarks from.", "info");
-            }
-
-            const prompt = `Based on the following field data, generate a concise and professional summary for the remarks section. The summary should be a short paragraph, suitable for a formal report.\n\n${context}`;
-            
-            showSpinner();
-            try {
-                let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
-                const payload = { contents: chatHistory };
-                // DEBUG FIX: API key is a placeholder. You must replace it with your own key.
-                // WARNING: Do not expose your API key in client-side code in a production environment.
-                const apiKey = "YOUR_API_KEY_HERE";
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-                
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                // DEBUG FIX: Improved error handling to show specific API error messages.
-                if (!response.ok) {
-                    let errorMsg = `API request failed with status ${response.status}`;
-                    try {
-                        const errorBody = await response.json();
-                        errorMsg += `: ${errorBody.error.message}`;
-                    } catch (e) {
-                        // Ignore if response body is not JSON
-                    }
-                    throw new Error(errorMsg);
-                }
-
-                const result = await response.json();
-                
-                if (result.candidates && result.candidates[0]?.content?.parts[0]?.text) {
-                    const generatedText = result.candidates[0].content.parts[0].text;
-                    document.getElementById('remarks').value = generatedText;
-                    showMessage('Remarks generated successfully!', 'success');
-                } else {
-                     throw new Error("Invalid response structure from API.");
-                }
-            } catch (error) {
-                console.error("Gemini API Error:", error);
-                showMessage(`Could not generate remarks: ${error.message}`, 'error');
-            } finally {
-                hideSpinner();
-            }
         });
 
     </script>

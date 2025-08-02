@@ -1,78 +1,71 @@
+// Define a versioned cache name.
 const CACHE_NAME = 'field-data-cache-v1';
-const urlsToCache = [
-  '/',
-  '/index.html',
+
+// List the core files (the "app shell") to be cached.
+const assetsToCache = [
+  '/', // This represents the main index.html file
+  'index.html',
+  'manifest.json',
+  'icon-192x192.png',
+  'icon-512x512.png',
   'https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js',
-  '/icon-192x192.png',
-  '/icon-512x512.png',
-  '/manifest.json'
+  'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'
 ];
 
-// Install a service worker
-self.addEventListener('install', event => {
-  // Perform install steps
+// 1. Install the service worker and cache the app shell.
+self.addEventListener('install', (event) => {
+  console.log('Service Worker: Installing...');
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('Opened cache');
-        return cache.addAll(urlsToCache);
+      .then((cache) => {
+        console.log('Service Worker: Caching app shell...');
+        return cache.addAll(assetsToCache);
+      })
+      .catch(error => {
+        console.error('Service Worker: Failed to cache app shell.', error);
       })
   );
 });
 
-// Cache and return requests
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        // Cache hit - return response
-        if (response) {
-          return response;
-        }
-
-        // IMPORTANT: Clone the request. A request is a stream and
-        // can only be consumed once. Since we are consuming this
-        // once by cache and once by the browser for fetch, we need
-        // to clone the response.
-        const fetchRequest = event.request.clone();
-
-        return fetch(fetchRequest).then(
-          response => {
-            // Check if we received a valid response
-            if(!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
-            }
-
-            // IMPORTANT: Clone the response. A response is a stream
-            // and because we want the browser to consume the response
-            // as well as the cache consuming the response, we need
-            // to clone it so we have two streams.
-            const responseToCache = response.clone();
-
-            caches.open(CACHE_NAME)
-              .then(cache => {
-                cache.put(event.request, responseToCache);
-              });
-
-            return response;
-          }
-        );
-      })
-    );
-});
-
-// Update a service worker
-self.addEventListener('activate', event => {
-  const cacheWhitelist = [CACHE_NAME];
+// 2. Activate the service worker and clean up old caches.
+self.addEventListener('activate', (event) => {
+  console.log('Service Worker: Activating...');
   event.waitUntil(
-    caches.keys().then(cacheNames => {
+    caches.keys().then((cacheNames) => {
       return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
-            return caches.delete(cacheName);
+        cacheNames.map((cache) => {
+          if (cache !== CACHE_NAME) {
+            console.log('Service Worker: Clearing old cache:', cache);
+            return caches.delete(cache);
           }
         })
       );
     })
+  );
+});
+
+// 3. Intercept network requests and serve from cache first.
+self.addEventListener('fetch', (event) => {
+  // We only want to cache GET requests.
+  if (event.request.method !== 'GET') {
+    return;
+  }
+
+  event.respondWith(
+    caches.match(event.request)
+      .then((response) => {
+        // If the response is in the cache, return it.
+        if (response) {
+          // console.log('Service Worker: Serving from cache:', event.request.url);
+          return response;
+        }
+
+        // If the response is not in the cache, fetch it from the network.
+        // console.log('Service Worker: Fetching from network:', event.request.url);
+        return fetch(event.request);
+      })
+      .catch(error => {
+        console.error('Service Worker: Error fetching data.', error);
+      })
   );
 });

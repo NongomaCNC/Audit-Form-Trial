@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="description" content="Secure field data capture application">
     <title>Field Data Capture</title>
 
     <link rel="manifest" href="manifest.json">
@@ -12,7 +13,6 @@
     <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
 
     <style>
-        /* CSS is clean, modern, and uses best practices like CSS variables and responsive design. No issues found. */
         :root {
             --primary-color: #007bff;
             --primary-gradient: linear-gradient(45deg, #007bff, #0056b3);
@@ -187,7 +187,6 @@
         #gpsBtn { background: var(--success-color); }
         #submitBtn { background: var(--primary-color); }
         #viewDataBtn { background: var(--info-color); }
-        /* QUALITY IMPROVEMENT: This comment notes a fix that has been correctly applied in the HTML and JS. Good! */
         #downloadBtn { background: var(--warning-color); color: #000; }
 
         #message {
@@ -353,33 +352,35 @@
 </head>
 <body>
 
-    <div id="spinner" class="spinner-overlay" style="display: none;"><div class="spinner"></div></div>
+    <div id="spinner" class="spinner-overlay" style="display: none;" aria-hidden="true">
+        <div class="spinner" aria-label="Loading"></div>
+    </div>
 
-    <div id="passwordModal" class="modal-overlay">
+    <div id="passwordModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="passwordModalTitle">
         <div class="modal-content">
-            <h2>Data Encryption</h2>
+            <h2 id="passwordModalTitle">Data Encryption</h2>
             <p>Enter your password to create a new secure session. Your session will be remembered for 8 hours.</p>
-            <input type="password" id="passwordInput" placeholder="Data Password (min 8 chars)">
+            <input type="password" id="passwordInput" placeholder="Data Password (min 8 chars)" aria-label="Password input">
             <div class="modal-actions">
                 <button id="passwordSubmit">Create Session</button>
             </div>
         </div>
     </div>
     
-    <div id="resumeSessionModal" class="modal-overlay">
+    <div id="resumeSessionModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="resumeSessionModalTitle">
         <div class="modal-content">
-            <h2>Resume Session</h2>
+            <h2 id="resumeSessionModalTitle">Resume Session</h2>
             <p>Please enter your password to unlock your existing secure session.</p>
-            <input type="password" id="resumePasswordInput" placeholder="Data Password">
+            <input type="password" id="resumePasswordInput" placeholder="Data Password" aria-label="Password input">
             <div class="modal-actions">
                 <button id="resumePasswordSubmit">Unlock</button>
             </div>
         </div>
     </div>
 
-    <div id="confirmModal" class="modal-overlay">
+    <div id="confirmModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="confirmModalTitle">
         <div class="modal-content">
-            <h2 id="confirmTitle">Are you sure?</h2>
+            <h2 id="confirmModalTitle">Are you sure?</h2>
             <p id="confirmMessage"></p>
             <div class="modal-actions">
                 <button id="confirmYesBtn">Yes</button>
@@ -486,12 +487,13 @@
         </div>
     </div>
 
+    <div id="message" role="alert" aria-live="assertive"></div>
+
     <script>
         const DB_NAME = 'FieldDataDB';
         const DB_VERSION = 3; 
         const DATA_STORE_NAME = 'records';
         const SESSION_STORE_NAME = 'session';
-        // QUALITY IMPROVEMENT: A comment was added to explain this change, which is good practice.
         const SESSION_DURATION_MS = 8 * 60 * 60 * 1000; // 8 hours
         let db;
         let encryptionKey; 
@@ -502,19 +504,42 @@
         const hideSpinner = () => spinner.style.display = 'none';
 
         // --- CRYPTOGRAPHY FUNCTIONS ---
-        // This is a robust, modern implementation of encryption. Excellent choice of algorithms.
         async function getKey(password, salt) {
             const enc = new TextEncoder();
-            const keyMaterial = await crypto.subtle.importKey("raw", enc.encode(password), { name: "PBKDF2" }, false, ["deriveKey"]);
-            return crypto.subtle.deriveKey({ name: "PBKDF2", salt, iterations: 100000, hash: "SHA-256" }, keyMaterial, { name: "AES-GCM", length: 256 }, true, ["encrypt", "decrypt"]);
+            const keyMaterial = await crypto.subtle.importKey(
+                "raw", 
+                enc.encode(password), 
+                { name: "PBKDF2" }, 
+                false, 
+                ["deriveKey"]
+            );
+            return crypto.subtle.deriveKey(
+                { 
+                    name: "PBKDF2", 
+                    salt, 
+                    iterations: 100000, 
+                    hash: "SHA-256" 
+                }, 
+                keyMaterial, 
+                { name: "AES-GCM", length: 256 }, 
+                true, 
+                ["encrypt", "decrypt"]
+            );
         }
 
         async function encryptData(dataObject, key) {
             if (!key) throw new Error("Encryption key is not set.");
             const iv = crypto.getRandomValues(new Uint8Array(12));
             const encodedData = new TextEncoder().encode(JSON.stringify(dataObject));
-            const encryptedContent = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, encodedData);
-            return { iv: Array.from(iv), data: Array.from(new Uint8Array(encryptedContent)) };
+            const encryptedContent = await crypto.subtle.encrypt(
+                { name: "AES-GCM", iv }, 
+                key, 
+                encodedData
+            );
+            return { 
+                iv: Array.from(iv), 
+                data: Array.from(new Uint8Array(encryptedContent)) 
+            };
         }
 
         async function decryptData(encryptedPackage, key) {
@@ -522,7 +547,11 @@
             try {
                 const iv = new Uint8Array(encryptedPackage.iv);
                 const data = new Uint8Array(encryptedPackage.data);
-                const decryptedContent = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, data);
+                const decryptedContent = await crypto.subtle.decrypt(
+                    { name: "AES-GCM", iv }, 
+                    key, 
+                    data
+                );
                 return JSON.parse(new TextDecoder().decode(decryptedContent));
             } catch (e) {
                 console.error("Decryption failed:", e);
@@ -531,10 +560,10 @@
         }
 
         // --- DATABASE FUNCTIONS ---
-        // Excellent use of Promises to wrap IndexedDB's event-based API. Makes the code much cleaner.
         function initDb() {
             return new Promise((resolve, reject) => {
                 const request = indexedDB.open(DB_NAME, DB_VERSION);
+                
                 request.onupgradeneeded = (event) => {
                     db = event.target.result;
                     if (!db.objectStoreNames.contains(DATA_STORE_NAME)) {
@@ -544,19 +573,93 @@
                         db.createObjectStore(SESSION_STORE_NAME, { keyPath: 'id' });
                     }
                 };
-                request.onsuccess = (event) => { db = event.target.result; resolve(db); };
-                request.onerror = (event) => reject(event.target.error);
+                
+                request.onsuccess = (event) => { 
+                    db = event.target.result; 
+                    resolve(db); 
+                };
+                
+                request.onerror = (event) => {
+                    console.error("IndexedDB error:", event.target.error);
+                    reject(event.target.error);
+                };
             });
         }
-        function getFromDb(storeName, key) { /* ... implementation looks correct ... */ }
-        function getAllFromDb(storeName) { /* ... implementation looks correct ... */ }
-        function putInDb(storeName, object) { /* ... implementation looks correct ... */ }
-        function deleteFromDb(storeName, key) { /* ... implementation looks correct ... */ }
-        function clearDbStore(storeName) { /* ... implementation looks correct ... */ }
+
+        function getFromDb(storeName, key) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(storeName, 'readonly');
+                const store = transaction.objectStore(storeName);
+                const request = store.get(key);
+                
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = (event) => {
+                    console.error(`Error getting data from ${storeName}:`, event.target.error);
+                    reject(event.target.error);
+                };
+            });
+        }
+
+        function getAllFromDb(storeName) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(storeName, 'readonly');
+                const store = transaction.objectStore(storeName);
+                const request = store.getAll();
+                
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = (event) => {
+                    console.error(`Error getting all data from ${storeName}:`, event.target.error);
+                    reject(event.target.error);
+                };
+            });
+        }
+
+        function putInDb(storeName, object) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(storeName, 'readwrite');
+                const store = transaction.objectStore(storeName);
+                const request = store.put(object);
+                
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = (event) => {
+                    console.error(`Error putting data in ${storeName}:`, event.target.error);
+                    reject(event.target.error);
+                };
+            });
+        }
+
+        function deleteFromDb(storeName, key) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(storeName, 'readwrite');
+                const store = transaction.objectStore(storeName);
+                const request = store.delete(key);
+                
+                request.onsuccess = () => resolve();
+                request.onerror = (event) => {
+                    console.error(`Error deleting data from ${storeName}:`, event.target.error);
+                    reject(event.target.error);
+                };
+            });
+        }
+
+        function clearDbStore(storeName) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(storeName, 'readwrite');
+                const store = transaction.objectStore(storeName);
+                const request = store.clear();
+                
+                request.onsuccess = () => resolve();
+                request.onerror = (event) => {
+                    console.error(`Error clearing ${storeName}:`, event.target.error);
+                    reject(event.target.error);
+                };
+            });
+        }
 
         // --- SESSION MANAGEMENT ---
         async function createSession(password) {
             const salt = crypto.getRandomValues(new Uint8Array(16));
+            const masterSalt = crypto.getRandomValues(new Uint8Array(16));
             const key = await getKey(password, salt);
             const exportedKey = await crypto.subtle.exportKey("jwk", key);
             
@@ -565,81 +668,560 @@
                 timestamp: Date.now()
             };
 
-            // BUG: Using a hardcoded salt ('master-salt') for the key that encrypts the session is less secure.
-            // FIX: A new random salt should be generated here and stored along with the encryptedSession.
-            const masterKey = await getKey(password, new TextEncoder().encode("master-salt"));
+            const masterKey = await getKey(password, masterSalt);
             const encryptedSession = await encryptData(sessionData, masterKey);
 
-            await putInDb(SESSION_STORE_NAME, { id: 'user-session', data: encryptedSession, salt: Array.from(salt) });
+            await putInDb(SESSION_STORE_NAME, { 
+                id: 'user-session', 
+                data: encryptedSession, 
+                salt: Array.from(salt),
+                masterSalt: Array.from(masterSalt)
+            });
+            
             encryptionKey = key;
         }
 
-        // ... other functions ...
+        async function resumeSession(password) {
+            try {
+                const sessionData = await getFromDb(SESSION_STORE_NAME, 'user-session');
+                if (!sessionData) throw new Error("No session found");
+                
+                const masterKey = await getKey(password, new Uint8Array(sessionData.masterSalt));
+                const decryptedSession = await decryptData(sessionData.data, masterKey);
+                
+                // Check if session is expired
+                if (Date.now() - decryptedSession.timestamp > SESSION_DURATION_MS) {
+                    throw new Error("Session expired");
+                }
+                
+                const key = await crypto.subtle.importKey(
+                    "jwk",
+                    decryptedSession.key,
+                    { name: "AES-GCM", length: 256 },
+                    true,
+                    ["encrypt", "decrypt"]
+                );
+                
+                encryptionKey = key;
+                return true;
+            } catch (error) {
+                console.error("Session resume failed:", error);
+                throw error;
+            }
+        }
+
+        async function checkExistingSession() {
+            try {
+                const session = await getFromDb(SESSION_STORE_NAME, 'user-session');
+                return !!session;
+            } catch (error) {
+                console.error("Error checking session:", error);
+                return false;
+            }
+        }
+
+        // --- UI UTILITIES ---
+        function showMessage(message, type = 'info') {
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = message;
+            messageEl.className = '';
+            messageEl.classList.add(type);
+            messageEl.classList.add('show');
+            
+            setTimeout(() => {
+                messageEl.classList.remove('show');
+            }, 3000);
+        }
+
+        function showConfirm(title, message) {
+            return new Promise((resolve) => {
+                document.getElementById('confirmTitle').textContent = title;
+                document.getElementById('confirmMessage').textContent = message;
+                const modal = document.getElementById('confirmModal');
+                
+                const yesBtn = document.getElementById('confirmYesBtn');
+                const noBtn = document.getElementById('confirmNoBtn');
+                
+                const handleResponse = (result) => {
+                    modal.classList.remove('visible');
+                    yesBtn.removeEventListener('click', yesHandler);
+                    noBtn.removeEventListener('click', noHandler);
+                    resolve(result);
+                };
+                
+                const yesHandler = () => handleResponse(true);
+                const noHandler = () => handleResponse(false);
+                
+                yesBtn.addEventListener('click', yesHandler);
+                noBtn.addEventListener('click', noHandler);
+                
+                modal.classList.add('visible');
+            });
+        }
+
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.add('visible');
+            document.getElementById(modalId).setAttribute('aria-hidden', 'false');
+        }
+
+        function hideModal(modalId) {
+            document.getElementById(modalId).classList.remove('visible');
+            document.getElementById(modalId).setAttribute('aria-hidden', 'true');
+        }
+
+        // --- FORM HANDLING ---
+        function getFormData() {
+            const form = document.getElementById('captureForm');
+            const formData = new FormData(form);
+            const data = {};
+            
+            formData.forEach((value, key) => {
+                if (value !== '') {
+                    data[key] = value;
+                }
+            });
+            
+            return data;
+        }
+
+        function clearForm() {
+            document.getElementById('captureForm').reset();
+            document.getElementById('recordId').value = '';
+        }
+
+        // --- GPS FUNCTIONS ---
+        async function getGPS() {
+            return new Promise((resolve, reject) => {
+                if (!navigator.geolocation) {
+                    reject(new Error("Geolocation is not supported by your browser"));
+                    return;
+                }
+                
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        resolve({ lat, lng });
+                    },
+                    (error) => {
+                        console.error("Geolocation error:", error);
+                        reject(new Error("Unable to retrieve your location"));
+                    },
+                    { enableHighAccuracy: true, timeout: 10000 }
+                );
+            });
+        }
+
+        // --- DATA DISPLAY FUNCTIONS ---
+        async function displaySavedData() {
+            try {
+                showSpinner();
+                const encryptedRecords = await getAllFromDb(DATA_STORE_NAME);
+                const records = [];
+                
+                for (const encryptedRecord of encryptedRecords) {
+                    try {
+                        const record = await decryptData(encryptedRecord.data, encryptionKey);
+                        record.id = encryptedRecord.id; // Preserve the ID
+                        records.push(record);
+                    } catch (e) {
+                        console.error("Error decrypting record:", e);
+                    }
+                }
+                
+                if (records.length === 0) {
+                    document.getElementById('dataCounts').textContent = "No saved data found";
+                    document.getElementById('savedTableHeader').innerHTML = '';
+                    document.getElementById('savedTableBody').innerHTML = '';
+                    return;
+                }
+                
+                // Update counts
+                document.getElementById('dataCounts').innerHTML = `
+                    Showing <span>${records.length}</span> records
+                `;
+                
+                // Create table header
+                const headers = Object.keys(records[0]).filter(key => key !== 'id');
+                let headerHTML = '<tr><th>Actions</th>';
+                headers.forEach(header => {
+                    headerHTML += `<th>${header}</th>`;
+                });
+                headerHTML += '</tr>';
+                document.getElementById('savedTableHeader').innerHTML = headerHTML;
+                
+                // Create table rows
+                let bodyHTML = '';
+                records.forEach(record => {
+                    let rowHTML = `<tr>
+                        <td class="action-cell">
+                            <button class="edit-btn" data-id="${record.id}">Edit</button>
+                            <button class="delete-btn" data-id="${record.id}">Delete</button>
+                        </td>`;
+                    
+                    headers.forEach(header => {
+                        rowHTML += `<td>${record[header] || ''}</td>`;
+                    });
+                    
+                    rowHTML += '</tr>';
+                    bodyHTML += rowHTML;
+                });
+                
+                document.getElementById('savedTableBody').innerHTML = bodyHTML;
+                
+                // Add event listeners to action buttons
+                document.querySelectorAll('.edit-btn').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        const id = parseInt(e.target.dataset.id);
+                        await editRecord(id);
+                    });
+                });
+                
+                document.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        const id = parseInt(e.target.dataset.id);
+                        const confirmed = await showConfirm(
+                            "Delete Record", 
+                            "Are you sure you want to delete this record?"
+                        );
+                        if (confirmed) {
+                            await deleteRecord(id);
+                            await displaySavedData();
+                        }
+                    });
+                });
+                
+            } catch (error) {
+                console.error("Error displaying saved data:", error);
+                showMessage("Error loading saved data", "error");
+            } finally {
+                hideSpinner();
+            }
+        }
+
+        async function editRecord(id) {
+            try {
+                showSpinner();
+                const encryptedRecord = await getFromDb(DATA_STORE_NAME, id);
+                if (!encryptedRecord) throw new Error("Record not found");
+                
+                const record = await decryptData(encryptedRecord.data, encryptionKey);
+                
+                // Populate form
+                document.getElementById('recordId').value = id;
+                Object.keys(record).forEach(key => {
+                    const input = document.querySelector(`[name="${key}"]`);
+                    if (input) {
+                        input.value = record[key];
+                    }
+                });
+                
+                // Scroll to form
+                document.getElementById('captureForm').scrollIntoView({ behavior: 'smooth' });
+                showMessage("Record loaded for editing", "success");
+                
+            } catch (error) {
+                console.error("Error editing record:", error);
+                showMessage("Error loading record for editing", "error");
+            } finally {
+                hideSpinner();
+            }
+        }
+
+        async function deleteRecord(id) {
+            try {
+                showSpinner();
+                await deleteFromDb(DATA_STORE_NAME, id);
+                showMessage("Record deleted", "success");
+            } catch (error) {
+                console.error("Error deleting record:", error);
+                showMessage("Error deleting record", "error");
+            } finally {
+                hideSpinner();
+            }
+        }
+
+        // --- DATA EXPORT ---
+        async function exportData() {
+            try {
+                showSpinner();
+                const encryptedRecords = await getAllFromDb(DATA_STORE_NAME);
+                const records = [];
+                
+                for (const encryptedRecord of encryptedRecords) {
+                    try {
+                        const record = await decryptData(encryptedRecord.data, encryptionKey);
+                        records.push(record);
+                    } catch (e) {
+                        console.error("Error decrypting record for export:", e);
+                    }
+                }
+                
+                if (records.length === 0) {
+                    showMessage("No data to export", "info");
+                    return;
+                }
+                
+                // Create workbook
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.json_to_sheet(records);
+                XLSX.utils.book_append_sheet(wb, ws, "FieldData");
+                
+                // Generate file and download
+                const date = new Date().toISOString().slice(0, 10);
+                XLSX.writeFile(wb, `FieldData_${date}.xlsx`);
+                
+                showMessage("Data exported successfully", "success");
+            } catch (error) {
+                console.error("Error exporting data:", error);
+                showMessage("Error exporting data", "error");
+            } finally {
+                hideSpinner();
+            }
+        }
+
+        // --- APP INITIALIZATION ---
+        async function initializeApp() {
+            try {
+                await initDb();
+                
+                const hasSession = await checkExistingSession();
+                if (hasSession) {
+                    showModal('resumeSessionModal');
+                } else {
+                    showModal('passwordModal');
+                }
+                
+                // Setup event listeners
+                document.getElementById('passwordSubmit').addEventListener('click', async () => {
+                    const password = document.getElementById('passwordInput').value.trim();
+                    if (password.length < 8) {
+                        showMessage("Password must be at least 8 characters", "error");
+                        return;
+                    }
+                    
+                    try {
+                        showSpinner();
+                        await createSession(password);
+                        hideModal('passwordModal');
+                        document.querySelector('.main-content').style.display = 'block';
+                        showMessage("New secure session created", "success");
+                    } catch (error) {
+                        console.error("Session creation failed:", error);
+                        showMessage("Error creating session: " + error.message, "error");
+                    } finally {
+                        hideSpinner();
+                    }
+                });
+                
+                document.getElementById('resumePasswordSubmit').addEventListener('click', async () => {
+                    const password = document.getElementById('resumePasswordInput').value.trim();
+                    if (!password) {
+                        showMessage("Please enter your password", "error");
+                        return;
+                    }
+                    
+                    try {
+                        showSpinner();
+                        const success = await resumeSession(password);
+                        if (success) {
+                            hideModal('resumeSessionModal');
+                            document.querySelector('.main-content').style.display = 'block';
+                            showMessage("Session resumed", "success");
+                        }
+                    } catch (error) {
+                        console.error("Session resume failed:", error);
+                        showMessage("Error resuming session: " + error.message, "error");
+                    } finally {
+                        hideSpinner();
+                    }
+                });
+                
+                document.getElementById('lockBtn').addEventListener('click', lockApp);
+                
+                document.getElementById('gpsBtn').addEventListener('click', async () => {
+                    try {
+                        showSpinner();
+                        const { lat, lng } = await getGPS();
+                        
+                        // Convert to DMS format
+                        const latDMS = convertToDMS(lat, true);
+                        const lngDMS = convertToDMS(lng, false);
+                        
+                        document.getElementById('latitude').value = latDMS;
+                        document.getElementById('longitude').value = lngDMS;
+                        
+                        showMessage("Location captured successfully", "success");
+                    } catch (error) {
+                        console.error("GPS error:", error);
+                        showMessage(error.message, "error");
+                    } finally {
+                        hideSpinner();
+                    }
+                });
+                
+                document.getElementById('captureForm').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    try {
+                        showSpinner();
+                        const formData = getFormData();
+                        const encryptedData = await encryptData(formData, encryptionKey);
+                        
+                        const record = {
+                            id: formData.id ? parseInt(formData.id) : undefined,
+                            data: encryptedData
+                        };
+                        
+                        await putInDb(DATA_STORE_NAME, record);
+                        clearForm();
+                        showMessage("Data saved successfully", "success");
+                    } catch (error) {
+                        console.error("Error saving data:", error);
+                        showMessage("Error saving data: " + error.message, "error");
+                    } finally {
+                        hideSpinner();
+                    }
+                });
+                
+                document.getElementById('viewDataBtn').addEventListener('click', async () => {
+                    try {
+                        await displaySavedData();
+                        document.getElementById('savedDataSection').classList.add('visible');
+                    } catch (error) {
+                        console.error("Error viewing data:", error);
+                        showMessage("Error viewing saved data", "error");
+                    }
+                });
+                
+                document.getElementById('closeViewDataBtn').addEventListener('click', () => {
+                    document.getElementById('savedDataSection').classList.remove('visible');
+                });
+                
+                document.getElementById('downloadBtn').addEventListener('click', exportData);
+                
+                document.getElementById('clearDataBtn').addEventListener('click', async () => {
+                    const confirmed = await showConfirm(
+                        "Clear All Data", 
+                        "Are you sure you want to delete ALL saved data? This cannot be undone."
+                    );
+                    if (confirmed) {
+                        try {
+                            showSpinner();
+                            await clearDbStore(DATA_STORE_NAME);
+                            document.getElementById('savedDataSection').classList.remove('visible');
+                            showMessage("All data cleared", "success");
+                        } catch (error) {
+                            console.error("Error clearing data:", error);
+                            showMessage("Error clearing data", "error");
+                        } finally {
+                            hideSpinner();
+                        }
+                    }
+                });
+                
+                document.getElementById('generateRemarksBtn').addEventListener('click', generateRemarks);
+                
+                // Network status detection
+                window.addEventListener('online', () => {
+                    document.getElementById('statusIndicator').textContent = 'Online';
+                    document.getElementById('statusIndicator').className = '';
+                });
+                
+                window.addEventListener('offline', () => {
+                    document.getElementById('statusIndicator').textContent = 'Offline';
+                    document.getElementById('statusIndicator').className = 'offline';
+                });
+                
+                // Initialize network status
+                if (navigator.onLine) {
+                    document.getElementById('statusIndicator').textContent = 'Online';
+                } else {
+                    document.getElementById('statusIndicator').textContent = 'Offline';
+                    document.getElementById('statusIndicator').className = 'offline';
+                }
+                
+            } catch (error) {
+                console.error("Initialization error:", error);
+                showMessage("Application initialization failed", "error");
+            }
+        }
+
         async function lockApp() {
             const confirmed = await showConfirm("Lock Application", "Are you sure you want to lock the app? You will need your password to unlock it again.");
             if (confirmed) {
                 await deleteFromDb(SESSION_STORE_NAME, 'user-session');
-                // UX IMPROVEMENT: location.reload() is functional but jarring. A smoother alternative would be
-                // to just hide the main content and show the password modal without a full page refresh.
-                location.reload();
+                document.querySelector('.main-content').style.display = 'none';
+                document.getElementById('resumeSessionModal').classList.add('visible');
             }
         }
-        // ... all other functions appear logically sound ...
-        
-        window.addEventListener('load', () => {
-             // CRITICAL BUG: This will cause a 404 (Not Found) error in the browser console because the
-             // 'service-worker.js' file is not provided. The PWA will not function offline.
-             // SOLUTION: You must create a service-worker.js file with caching logic.
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('service-worker.js')
-                    .then(() => console.log('Service Worker Registered'))
-                    .catch(err => console.error('Service Worker Registration Failed:', err));
-            }
-            initializeApp();
-        });
-        
-        // ... other event listeners are correct ...
 
-        // --- GEMINI API FUNCTION ---
-        document.getElementById('generateRemarksBtn').addEventListener('click', async () => {
+        function convertToDMS(decimalDegrees, isLatitude) {
+            const degrees = Math.floor(Math.abs(decimalDegrees));
+            const minutesFloat = (Math.abs(decimalDegrees) - degrees) * 60;
+            const minutes = Math.floor(minutesFloat);
+            const seconds = ((minutesFloat - minutes) * 60).toFixed(3);
+            
+            const direction = isLatitude 
+                ? (decimalDegrees >= 0 ? 'N' : 'S')
+                : (decimalDegrees >= 0 ? 'E' : 'W');
+            
+            return `${degrees}° ${minutes}' ${seconds}" ${direction}`;
+        }
+
+        async function generateRemarks() {
             if (!navigator.onLine) {
                 return showMessage('This feature requires an internet connection.', 'info');
             }
-            // ... logic for creating prompt is good ...
-            const prompt = `...`;
+            
+            // Get relevant form data for remarks generation
+            const formData = getFormData();
+            const prompt = `Generate a concise professional remark for a field inspection report based on these details:
+                - Location: ${formData.zone || 'unknown zone'}, ${formData.sector || 'unknown sector'}
+                - Installation: ${formData.installationNo || 'unknown installation'}
+                - Status: ${formData.connected === 'Yes' ? 'Connected' : 'Not connected'}
+                - Meter: ${formData.meterNo || 'no meter number'} (${formData.meterType || 'unknown type'})
+                - Tampered: ${formData.tampered === 'Yes' ? 'Yes' : 'No'}
+                - Owner present: ${formData.atHome === 'Yes' ? 'Yes' : 'No'}
+                - Additional notes: ${formData.remarks || 'none'}
+                
+                Please provide a single paragraph with all key information in a professional tone.`;
             
             showSpinner();
             try {
-                let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
-                const payload = { contents: chatHistory };
-                
-                // 🚨 CRITICAL SECURITY VULNERABILITY! 🚨
-                // Storing an API key in client-side JavaScript means ANYONE can steal it.
-                // The key must be removed from here and used only on a secure server-side proxy.
-                const apiKey = "YOUR_API_KEY_HERE"; 
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-                
-                const response = await fetch(apiUrl, { /* ... */ });
+                const response = await fetch('/api/generate-remarks', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ prompt })
+                });
 
-                // QUALITY IMPROVEMENT: Excellent error handling here. It checks the response status
-                // and attempts to parse the body for a detailed error message. This is great for debugging.
                 if (!response.ok) {
                     let errorMsg = `API request failed with status ${response.status}`;
                     try {
                         const errorBody = await response.json();
-                        errorMsg += `: ${errorBody.error.message}`;
+                        errorMsg += `: ${errorBody.error?.message || 'Unknown error'}`;
                     } catch (e) { /* Ignore */ }
                     throw new Error(errorMsg);
                 }
+                
                 const result = await response.json();
-                // ... rest of the function is good ...
+                if (result.text) {
+                    document.getElementById('remarks').value = result.text;
+                    showMessage("Remarks generated successfully", "success");
+                } else {
+                    throw new Error("No text returned from API");
+                }
             } catch (error) {
-                console.error("Gemini API Error:", error);
+                console.error("Remarks generation error:", error);
                 showMessage(`Could not generate remarks: ${error.message}`, 'error');
             } finally {
                 hideSpinner();
             }
-        });
+        }
+
+        // Initialize the app when the page loads
+        window.addEventListener('load', initializeApp);
     </script>
 </body>
 </html>

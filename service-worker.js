@@ -1,71 +1,69 @@
-// Define a versioned cache name.
+// Define a name for the cache
 const CACHE_NAME = 'field-data-cache-v1';
 
-// List the core files (the "app shell") to be cached.
-const assetsToCache = [
-  '/', // This represents the main index.html file
-  'index.html',
-  'manifest.json',
-  'icon-192x192.png',
-  'icon-512x512.png',
-  'https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js',
-  'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'
+// List all the files that need to be cached for the app to work offline
+const FILES_TO_CACHE = [
+  './', // This caches the root URL, which serves index.html
+  './index.html',
+  './manifest.json',
+  './xlsx.full.min.js', // The locally downloaded script
+  './icons/icon-192x192.png',
+  './icons/icon-512x512.png'
 ];
 
-// 1. Install the service worker and cache the app shell.
+// The 'install' event is fired when the service worker is first installed.
 self.addEventListener('install', (event) => {
-  console.log('Service Worker: Installing...');
+  console.log('[Service Worker] Install');
+  // We wait until the cache is opened and all our files are added to it.
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('Service Worker: Caching app shell...');
-        return cache.addAll(assetsToCache);
-      })
-      .catch(error => {
-        console.error('Service Worker: Failed to cache app shell.', error);
-      })
-  );
-});
-
-// 2. Activate the service worker and clean up old caches.
-self.addEventListener('activate', (event) => {
-  console.log('Service Worker: Activating...');
-  event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cache) => {
-          if (cache !== CACHE_NAME) {
-            console.log('Service Worker: Clearing old cache:', cache);
-            return caches.delete(cache);
-          }
-        })
-      );
+    caches.open(CACHE_NAME).then((cache) => {
+      console.log('[Service Worker] Pre-caching offline page');
+      return cache.addAll(FILES_TO_CACHE);
     })
   );
+  self.skipWaiting();
 });
 
-// 3. Intercept network requests and serve from cache first.
+// The 'activate' event is fired when the service worker is activated.
+// It's a good place to clean up old caches.
+self.addEventListener('activate', (event) => {
+  console.log('[Service Worker] Activate');
+  // Remove outdated caches
+  event.waitUntil(
+    caches.keys().then((keyList) => {
+      return Promise.all(keyList.map((key) => {
+        if (key !== CACHE_NAME) {
+          console.log('[Service Worker] Removing old cache', key);
+          return caches.delete(key);
+        }
+      }));
+    })
+  );
+  self.clients.claim();
+});
+
+// The 'fetch' event intercepts all network requests made by the app.
 self.addEventListener('fetch', (event) => {
-  // We only want to cache GET requests.
+  console.log('[Service Worker] Fetch', event.request.url);
+  // We only want to handle GET requests
   if (event.request.method !== 'GET') {
     return;
   }
-
+  
   event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        // If the response is in the cache, return it.
+    caches.open(CACHE_NAME).then((cache) => {
+      // 1. Try to find the response in the cache.
+      return cache.match(event.request).then((response) => {
+        // If it's in the cache, return it (this makes it work offline).
         if (response) {
-          // console.log('Service Worker: Serving from cache:', event.request.url);
+          console.log(`[Service Worker] Returning from cache: ${event.request.url}`);
           return response;
         }
-
-        // If the response is not in the cache, fetch it from the network.
-        // console.log('Service Worker: Fetching from network:', event.request.url);
+        
+        // 2. If it's not in the cache, fetch it from the network.
+        console.log(`[Service Worker] Fetching from network: ${event.request.url}`);
         return fetch(event.request);
-      })
-      .catch(error => {
-        console.error('Service Worker: Error fetching data.', error);
-      })
+      });
+    })
   );
 });

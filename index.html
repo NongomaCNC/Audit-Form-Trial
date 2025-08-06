@@ -6,10 +6,10 @@
     <title>Field Data Capture</title>
 
     <link rel="manifest" href="manifest.json">
-    <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
+    <script src="xlsx.full.min.js"></script>
 
     <style>
-        /* ---------- BASIC LAYOUT ---------- */
+        /* All your CSS code remains exactly the same here... */
         :root {
             --primary-color: #007bff;
             --secondary-color: #6c757d;
@@ -58,7 +58,6 @@
             }
         }
 
-        /* ---------- FORM ELEMENTS ---------- */
         .field {
             display: flex;
             flex-direction: column;
@@ -96,7 +95,6 @@
             cursor: not-allowed;
         }
 
-        /* ---------- BUTTONS ---------- */
         .actions {
             grid-column: 1 / -1;
             display: flex;
@@ -136,8 +134,6 @@
         #clearDataBtn { background: var(--danger-color); }
         #closeViewDataBtn { background: var(--secondary-color); }
 
-
-        /* ---------- MESSAGES & MODALS ---------- */
         #message {
             position: fixed;
             bottom: 20px;
@@ -207,7 +203,6 @@
             background-color: var(--secondary-color);
         }
 
-        /* ---------- SAVED DATA SECTION ---------- */
         #savedDataSection {
             background: #fff;
             padding: 1.5rem;
@@ -288,7 +283,6 @@
             </div>
         </div>
     </div>
-
     <div id="confirmModal" class="modal-overlay">
         <div class="modal-content">
             <h2 id="confirmTitle">Are you sure?</h2>
@@ -299,13 +293,10 @@
             </div>
         </div>
     </div>
-
     <div class="main-content">
         <h1>Field Data Capture</h1>
-
         <form id="captureForm" novalidate>
             <input type="hidden" id="recordId" name="id">
-
             <div class="field"><label for="workorderNo">Workorder No</label><input id="workorderNo" name="workorderNo" type="text" placeholder="Optional"></div>
             <div class="field"><label for="zone">Zone</label><input id="zone" name="zone" type="text" placeholder="e.g., North"></div>
             <div class="field"><label for="sector">Sector</label><input id="sector" name="sector" type="text" placeholder="e.g., A"></div>
@@ -369,9 +360,7 @@
                 <button type="button" id="exportBtn">Download & Clear</button>
             </div>
         </form>
-
         <div id="message" role="alert" aria-live="polite"></div>
-
         <div id="savedDataSection">
             <h2>Saved Field Entries</h2>
             <div id="dataCounts"></div>
@@ -389,17 +378,16 @@
     </div>
 
     <script>
+        // All your JavaScript code remains the same here...
         const DB_NAME = 'FieldDataDB';
         const DB_VERSION = 2; 
         const STORE_NAME = 'records';
         let db;
         let encryptionKey; 
 
-        // MODIFIED: Security code updated as per your request.
         const SECURITY_CODE = 'PWA@2025';
         const INTERNAL_ENCRYPTION_PASSWORD = 'a-very-secret-internal-pwa-password-!@#$';
 
-        // --- CRYPTOGRAPHY FUNCTIONS ---
         async function getKey(password, salt) {
             const enc = new TextEncoder();
             const keyMaterial = await window.crypto.subtle.importKey(
@@ -462,8 +450,6 @@
             }
         }
 
-
-        // --- DATABASE FUNCTIONS ---
         function initDb() {
             return new Promise((resolve, reject) => {
                 const request = indexedDB.open(DB_NAME, DB_VERSION);
@@ -541,7 +527,6 @@
             });
         }
 
-        // --- UI FEEDBACK & MODALS ---
         const messageElement = document.getElementById('message');
         function showMessage(msg, type = 'info', duration = 3000) {
             messageElement.textContent = msg;
@@ -572,7 +557,6 @@
             });
         }
 
-        // --- GPS & DATE ---
         function toDMS(dec, type) {
             const abs = Math.abs(dec);
             const deg = Math.floor(abs);
@@ -585,10 +569,12 @@
         
         function setTodaysDate() {
             const today = new Date();
-            document.getElementById('date').valueAsDate = today;
+            // Taking timezone into account to prevent date from being off by one day
+            const offset = today.getTimezoneOffset();
+            const todayWithOffset = new Date(today.getTime() - (offset*60*1000));
+            document.getElementById('date').value = todayWithOffset.toISOString().split('T')[0];
         }
 
-        // --- VALIDATION ---
         const alwaysRequiredFields = ['cnc', 'date', 'feederName', 'transformerNo'];
         const conditionalRequiredFields = ['phoneCode', 'phoneNo', 'meterNo', 'meterType', 'supplyGroupCode', 'cardTrip', 'elTest', 'sealed', 'sealNo', 'latitude', 'longitude'];
         
@@ -638,7 +624,6 @@
             return true;
         }
 
-        // --- FORM & DATA HANDLING ---
         async function handleFormSubmit(e) {
             e.preventDefault();
             if (!validateForm()) return;
@@ -719,7 +704,6 @@
             }
         }
 
-        // --- EXPORT & VIEW DATA ---
         const savedDataSection = document.getElementById('savedDataSection');
         const formFieldOrder = Array.from(document.getElementById('captureForm').elements)
             .map(el => el.name)
@@ -833,8 +817,6 @@
                 return false;
             }
         }
-
-        // --- INITIALIZATION & EVENT LISTENERS ---
         
         async function handleLogin() {
              const securityCodeInput = document.getElementById('securityCodeInput');
@@ -948,6 +930,19 @@
         
         ['access', 'atHome', 'connected'].forEach(id => {
             document.getElementById(id).addEventListener('change', updateRequiredVisuals);
+        });
+
+        // MODIFIED: Add this block to register the Service Worker
+        window.addEventListener('load', () => {
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js')
+              .then(registration => {
+                console.log('Service Worker registered with scope:', registration.scope);
+              })
+              .catch(error => {
+                console.error('Service Worker registration failed:', error);
+              });
+          }
         });
 
     </script>

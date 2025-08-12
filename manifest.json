@@ -1,11 +1,12 @@
 {
   "name": "Field Data Capture",
   "short_name": "FieldData",
-  "description": "A secure app for capturing field data with offline capabilities.",
-  "start_url": ".",
+  "description": "An offline-first application for capturing field data.",
+  "start_url": "/index.html",
   "display": "standalone",
-  "background_color": "#f4f7fc",
+  "background_color": "#f2f2f2",
   "theme_color": "#007bff",
+  "orientation": "portrait-primary",
   "icons": [
     {
       "src": "icon-192x192.png",

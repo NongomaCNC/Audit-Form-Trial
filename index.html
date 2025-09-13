@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Field Data Capture</title>
 
-    <!-- Link to the manifest file -->
     <link rel="manifest" href="manifest.json">
     <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
 
@@ -129,7 +128,6 @@
         #submitBtn { background: var(--primary-color); }
         #viewDataBtn { background: var(--info-color); }
         #downloadOnlyBtn { background: var(--cyan-color); color: #000; }
-        #exportBtn { background: var(--warning-color); color: #000; }
         #clearDataBtn { background: var(--danger-color); }
         #closeViewDataBtn { background: var(--secondary-color); }
 
@@ -275,7 +273,6 @@
 </head>
 <body>
 
-    <!-- Password Modal -->
     <div id="passwordModal" class="modal-overlay visible">
         <div class="modal-content">
             <h2>Data Encryption</h2>
@@ -287,7 +284,6 @@
         </div>
     </div>
 
-    <!-- Confirmation Modal -->
     <div id="confirmModal" class="modal-overlay">
         <div class="modal-content">
             <h2 id="confirmTitle">Are you sure?</h2>
@@ -305,14 +301,12 @@
         <form id="captureForm" novalidate>
             <input type="hidden" id="recordId" name="id">
 
-            <!-- Form fields remain the same -->
-            
             <div class="field"><label for="zone">Zone</label><input id="zone" name="zone" type="text" placeholder="e.g., Empangeni"></div>
             <div class="field"><label for="sector">Sector</label><input id="sector" name="sector" type="text" placeholder="e.g., Pongola"></div>
             <div class="field"><label for="cnc">CNC</label><input id="cnc" name="cnc" type="text"></div>
  	    <div class="field"><label for="date">Date</label><input id="date" type="date" name="date"></div>
 	    <div class="field"><label for="time">Time</label><input id="time" type="time" name="time"></div>
-       	    <div class="field"><label for="Audit/meter changeout">Audit/Meterchangeout</label><input id="Audit or meter_changeout" type="text" name="Audit_meter_changeout"></div>
+       	    <div class="field"><label for="workDescription">Work Description</label><input id="workDescription" type="text" name="workDescription"></div>
             <div class="field"><label for="testerID">TesterID</label><input id="testerID" name="testerID" type="text"></div>
            
             <div class="field"><label for="feederName">Feeder Name</label><input id="feederName" name="feederName" type="text"></div>
@@ -373,7 +367,6 @@
                 <button type="submit" id="submitBtn">Save Data</button>
                 <button type="button" id="viewDataBtn">View Data</button>
                 <button type="button" id="downloadOnlyBtn">Download</button>
-                <button type="button" id="exportBtn">Download & Clear</button>
             </div>
         </form>
 
@@ -848,7 +841,7 @@
 
             // Define a mapping for specific field headers for the Excel file
             const excelHeaderMap = {
-                'adit_meter_changeout': 'Audit or Meter Changeout',
+                'workDescription': 'Work Description',
                 'lat': 'Latitude',
                 'lon': 'Longitude',
             };
@@ -885,23 +878,6 @@
             const confirmed = await showConfirm('Download Data', `You have ${records.length} entries. Do you want to download the Excel file?`);
             if (confirmed) await performDownload();
             else showMessage('Download cancelled.', 'info');
-        });
-
-        document.getElementById('exportBtn').addEventListener('click', async () => {
-            const recordsToExport = await getAllRecords();
-            if (recordsToExport.length === 0) return showMessage('No data to export.', 'info');
-            const downloadConfirmed = await showConfirm('Download Data', `You have ${recordsToExport.length} entries. Do you want to download the Excel file?`);
-            if (!downloadConfirmed) return showMessage('Download cancelled.', 'info');
-            
-            const success = await performDownload();
-            if (success) {
-                const clearConfirmed = await showConfirm('Clear Data', 'Data has been downloaded. Do you want to clear all saved entries?');
-                if (clearConfirmed) {
-                    await clearAllRecords();
-                    savedDataSection.classList.remove('visible');
-                    showMessage('All saved data has been cleared.', 'success');
-                }
-            }
         });
 
         // --- INITIALIZATION & EVENT LISTENERS ---

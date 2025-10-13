@@ -128,6 +128,7 @@
         #submitBtn { background: var(--primary-color); }
         #viewDataBtn { background: var(--info-color); }
         #downloadOnlyBtn { background: var(--cyan-color); color: #000; }
+        #sendOnlineBtn { background: var(--warning-color); color: #000; } /* New Button Style */
         #clearDataBtn { background: var(--danger-color); }
         #closeViewDataBtn { background: var(--secondary-color); }
 
@@ -304,14 +305,15 @@
             <div class="field"><label for="zone">Zone</label><input id="zone" name="zone" type="text" placeholder="e.g., Empangeni"></div>
             <div class="field"><label for="sector">Sector</label><input id="sector" name="sector" type="text" placeholder="e.g., Pongola"></div>
             <div class="field"><label for="cnc">CNC</label><input id="cnc" name="cnc" type="text"></div>
- 	    <div class="field"><label for="date">Date</label><input id="date" type="date" name="date"></div>
-	    <div class="field"><label for="time">Time</label><input id="time" type="time" name="time"></div>
-       	    <div class="field"><label for="workDescription">Work Description</label><input id="workDescription" type="text" name="workDescription"></div>
+            <div class="field"><label for="onPrevious">On Previous</label><input id="onPrevious" name="onPrevious" type="text"></div>
+ 	        <div class="field"><label for="date">Date</label><input id="date" type="date" name="date"></div>
+	        <div class="field"><label for="time">Time</label><input id="time" type="time" name="time"></div>
+       	    <div class="field"><label for="featureName">FeatureName(Auditing/MeterChangeout)</label><input id="featureName" type="text" name="featureName"></div>
             <div class="field"><label for="testerID">TesterID</label><input id="testerID" name="testerID" type="text"></div>
            
             <div class="field"><label for="feederName">Feeder Name</label><input id="feederName" name="feederName" type="text"></div>
             <div class="field"><label for="townshipName">Township Name</label><input id="townshipName" name="townshipName" type="text"></div>
-            <div class="field"><label for="transformerNo">Transformer No</label><input id="transformerNo" name="transformerNo" type="text"></div>
+            <div class="field"><label for="xformerNo">XformerNo</label><input id="xformerNo" name="xformerNo" type="text"></div>
             <div class="field"><label for="standNo">Stand No</label><input id="standNo" name="standNo" type="text"></div>
             <div class="field"><label for="installationNo">Installation No</label><input id="installationNo" name="installationNo" type="text"></div>
             <div class="field"><label for="lat">Latitude (DD MM SS.SSS S/N)</label><input id="lat" name="latitude" type="text" readonly></div>
@@ -325,31 +327,32 @@
             <div class="field"><label for="owner">Owner</label><select id="owner" name="owner"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
             <div class="field"><label for="surname">Surname</label><input id="surname" name="surname" type="text"></div>
             <div class="field"><label for="name">Name</label><input id="name" name="name" type="text"></div>
-            <div class="field"><label for="idNo">ID No</label><input id="idNo" name="idNo" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="e.g., 8501015000087"></div>
+            <div class="field"><label for="idNo">ID No</label><input id="idNo" name="idNo" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="13 digits required" maxlength="13" minlength="13"></div>
             <div class="field"><label for="phoneCode">Phone Code</label><input id="phoneCode" name="phoneCode" type="tel" inputmode="numeric" pattern="[0-9]*" placeholder="e.g., +27"></div>
-            <div class="field"><label for="phoneNo">Phone No</label><input id="phoneNo" name="phoneNo" type="tel" inputmode="tel" placeholder="e.g., 821234567"></div>
+             <div class="field"><label for="phoneNo">Phone No</label><input id="phoneNo" name="phoneNo" type="tel" inputmode="tel" placeholder="7 digits required" maxlength="7" minlength="7"></div>
             <div class="field"><label for="normalVendor">Normal Vendor</label><select id="normalVendor" name="normalVendor"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
             <div class="field"><label for="recentVendor">Most Recent Vendor</label><input id="recentVendor" name="recentVendor" type="text"></div>
-            <div class="field"><label for="meterNo">Meter No</label><input id="meterNo" name="meterNo" type="text"></div>
+            <div class="field"><label for="meterNo">Meter No</label><input id="meterNo" name="meterNo" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="11 digits required" maxlength="11" minlength="11"></div>
             <div class="field"><label for="split">Split</label><select id="split" name="split"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
             <div class="field"><label for="commonBaseMeter">Common/Non Common Base Meter</label><input id="commonBaseMeter" name="commonBaseMeter" type="text"></div>
-            <div class="field"><label for="edEcu">ED/ECU</label><input id="edEcu" name="edEcu" type="text"></div>
-            <div class="field"><label for="meterType">Meter Type</label><input id="meterType" name="meterType" type="text"></div>
+            <div class="field"><label for="edEcu">ED/ECU</label><select id="edEcu" name="edEcu"><option value="">— Select —</option><option value="ED">ED</option><option value="ECU">ECU</option></select></div>
+            <div class="field"><label for="meterField">Meter Field</label><input id="meterField" name="meterField" type="text"></div>
+            <div class="field"><label for="otherMeterType">Other Meter Type</label><input id="otherMeterType" name="otherMeterType" type="text"></div>
             <div class="field"><label for="tariffCode">Tariff Code</label><input id="tariffCode" name="tariffCode" type="text"></div>
             <div class="field"><label for="ampLimit">Amp Limit</label><input id="ampLimit" name="ampLimit" type="number" inputmode="numeric" pattern="[0-9]*"></div>
             <div class="field"><label for="supplyGroupCode">Supply Group Code</label><input id="supplyGroupCode" name="supplyGroupCode" type="text"></div>
-	    <div class="field"><label for="meterTariffIndex">MeterTariffIndex</label><input id="meterTariffIndex" name="meterTariffIndex" type="text"></div>
-
+            <div class="field"><label for="illegalConnection">Illegal Connection</label><select id="illegalConnection" name="illegalConnection"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
+	        <div class="field"><label for="meterTariffIndex">MeterTariffIndex</label><input id="meterTariffIndex" name="meterTariffIndex" type="text"></div>
             <div class="field"><label for="magCard">Mag Card/Keypad</label><input id="magCard" name="magCard" type="text"></div>
             <div class="field"><label for="stsOrProp">STS or Prop</label><input id="stsOrProp" name="stsOrProp" type="text"></div>
             <div class="field"><label for="tampered">Tampered</label><select id="tampered" name="tampered"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
             <div class="field"><label for="tamperMethod">Tamper Method</label><input id="tamperMethod" name="tamperMethod" type="text"></div>
             <div class="field"><label for="removed">Removed</label><select id="removed" name="removed"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
             <div class="field"><label for="tamperNotNo">Tamper Not No</label><input id="tamperNotNo" name="tamperNotNo" type="text"></div>
-	    <div class="field"><label for="tamperWaiver">TamperWaiver</label><input id="tamperWaiver" name="tamperWaiver" type="text"></div>
-
+	        <div class="field"><label for="tamperWaiver">TamperWaiver</label><input id="tamperWaiver" name="tamperWaiver" type="text"></div>
             <div class="field"><label for="cardTrip">Card Trip</label><select id="cardTrip" name="cardTrip"><option value="">— Select —</option><option value="Pass">Pass</option><option value="Fail">Fail</option></select></div>
             <div class="field"><label for="elTest">E/L Test</label><select id="elTest" name="elTest"><option value="">— Select —</option><option value="Pass">Pass</option><option value="Fail">Fail</option></select></div>
+            <div class="field"><label for="newSupplyGroupCode">NewSupplyGroupCode</label><input id="newSupplyGroupCode" name="newSupplyGroupCode" type="text"></div>
             <div class="field"><label for="meterFaulty">Meter Faulty</label><select id="meterFaulty" name="meterFaulty"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
             <div class="field"><label for="replaced">Replaced</label><select id="replaced" name="replaced"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
             <div class="field"><label for="mmfNo">MMF No</label><input id="mmfNo" name="mmfNo" type="text"></div>
@@ -367,6 +370,7 @@
                 <button type="submit" id="submitBtn">Save Data</button>
                 <button type="button" id="viewDataBtn">View Data</button>
                 <button type="button" id="downloadOnlyBtn">Download</button>
+                <button type="button" id="sendOnlineBtn">Send Online</button>
             </div>
         </form>
 
@@ -494,7 +498,6 @@
             return new Promise((resolve, reject) => {
                 const transaction = db.transaction([STORE_NAME], 'readwrite');
                 const store = transaction.objectStore(STORE_NAME);
-                // Correctly add only the encrypted data
                 const request = store.add({ encryptedData: encryptedRecord });
                 request.onsuccess = () => resolve();
                 request.onerror = (event) => reject(event.target.error);
@@ -505,7 +508,6 @@
             return new Promise((resolve, reject) => {
                 const transaction = db.transaction([STORE_NAME], 'readwrite');
                 const store = transaction.objectStore(STORE_NAME);
-                // The object for update must contain the keyPath
                 const request = store.put({ id: id, encryptedData: encryptedRecord });
                 request.onsuccess = () => resolve();
                 request.onerror = (event) => reject(event.target.error);
@@ -607,8 +609,8 @@
         }
 
         // --- VALIDATION ---
-        const alwaysRequiredFields = ['cnc', 'date', 'feederName', 'transformerNo'];
-        const conditionalRequiredFields = ['phoneCode', 'phoneNo', 'meterNo', 'meterType', 'supplyGroupCode', 'cardTrip', 'elTest', 'sealed', 'sealNo', 'latitude', 'longitude'];
+        const alwaysRequiredFields = ['cnc', 'date', 'feederName', 'xformerNo'];
+        const conditionalRequiredFields = ['phoneCode', 'phoneNo', 'meterNo', 'supplyGroupCode', 'cardTrip', 'elTest', 'sealed', 'sealNo', 'latitude', 'longitude'];
         
         function updateRequiredVisuals() {
             const form = document.getElementById('captureForm');
@@ -633,22 +635,42 @@
             const form = document.getElementById('captureForm');
             const formData = new FormData(form);
             const errors = [];
+            
+            // MODIFIED: Specific length and pattern checks
+            const idNo = formData.get('idNo').trim();
+            if (idNo && !/^\d{13}$/.test(idNo)) {
+                errors.push('ID No must be exactly 13 numeric digits.');
+            }
+
+            const phoneNo = formData.get('phoneNo').trim();
+            if (phoneNo && !/^\d{7}$/.test(phoneNo)) {
+                errors.push('Phone No must be exactly 7 numeric digits.');
+            }
+
+            const meterNo = formData.get('meterNo').trim();
+            if (meterNo && !/^\d{11}$/.test(meterNo)) {
+                errors.push('Meter No must be exactly 11 numeric digits.');
+            }
+            
             const isConditionMet = ['access', 'atHome', 'connected'].some(id => form.elements[id].value === 'Yes');
             const checkField = (id, label) => {
                 if (!formData.get(id)?.trim()) {
                     errors.push(`${label} is required.`);
                 }
             };
+
             alwaysRequiredFields.forEach(id => {
                 const label = form.querySelector(`label[for="${id}"]`)?.textContent.replace('*','');
                 checkField(id, label);
             });
+
             if (isConditionMet) {
                 conditionalRequiredFields.forEach(id => {
                     const label = form.querySelector(`label[for="${id}"]`)?.textContent.replace('*','').replace(/ \(.+\)/, '');
                     checkField(id, label);
                 });
             }
+
             if (errors.length > 0) {
                 showMessage(errors.join('\n'), 'error', 5000);
                 return false;
@@ -665,7 +687,6 @@
             const formData = new FormData(form);
             const data = Object.fromEntries(formData.entries());
             
-            // Corrected logic to check for an existing record ID
             const recordId = data.id ? parseInt(data.id, 10) : null;
             delete data.id;
 
@@ -674,12 +695,10 @@
                 data.date = d.toISOString().split('T')[0];
             }
             
-            // Auto-capture the current time on form submission
             const now = new Date();
             const hours = String(now.getHours()).padStart(2, '0');
             const minutes = String(now.getMinutes()).padStart(2, '0');
             data.time = `${hours}:${minutes}`;
-
 
             try {
                 const encryptedData = await encryptData(data);
@@ -701,8 +720,13 @@
             document.getElementById('captureForm').reset();
             document.getElementById('recordId').value = '';
             document.getElementById('submitBtn').textContent = 'Save Data';
+            // Ensure Amp Limit is editable after reset
+            const ampLimitInput = document.getElementById('ampLimit');
+            ampLimitInput.readOnly = false;
+            ampLimitInput.style.backgroundColor = '';
+            ampLimitInput.style.cursor = '';
             setTodaysDate();
-            setCurrentTime(); // Auto-set time on reset
+            setCurrentTime();
             updateRequiredVisuals();
             window.scrollTo(0, 0);
         }
@@ -725,6 +749,10 @@
                 document.getElementById('submitBtn').textContent = 'Update Data';
                 updateRequiredVisuals();
                 savedDataSection.classList.remove('visible');
+                
+                // Manually trigger change event for edEcu to set Amp Limit correctly
+                document.getElementById('edEcu').dispatchEvent(new Event('change'));
+
                 window.scrollTo(0, 0);
                 showMessage('Editing entry. Scroll up to see the form.', 'info');
             } catch (error) {
@@ -808,7 +836,6 @@
                     tableBody.appendChild(tr);
                 });
                 
-                // Add event listeners dynamically to fix inline onclick issue
                 tableBody.querySelectorAll('.edit-btn').forEach(button => {
                     button.addEventListener('click', (e) => editEntry(parseInt(e.target.dataset.id, 10)));
                 });
@@ -839,16 +866,16 @@
                 }
             }
 
-            // Define a mapping for specific field headers for the Excel file
             const excelHeaderMap = {
-                'workDescription': 'Work Description',
+                'featureName': 'FeatureName(Auditing/MeterChangeout)',
+                'xformerNo': 'XformerNo',
+                'newSupplyGroupCode': 'NewSupplyGroupCode',
                 'lat': 'Latitude',
                 'lon': 'Longitude',
             };
 
             const map = {};
             formFieldOrder.forEach(key => {
-                // Use the custom mapping if it exists, otherwise fall back to the label from the DOM
                 map[key] = excelHeaderMap[key] || document.querySelector(`label[for="${key}"]`)?.textContent.replace('*','') || key;
             });
             const formatted = records.map(rec => {
@@ -871,14 +898,66 @@
                 return false;
             }
         }
+        
+        // NEW: Function to send data to an online server
+        async function sendDataOnline() {
+            // IMPORTANT: Replace this with your actual API endpoint
+            const API_ENDPOINT = 'https://api.example.com/submit-data';
 
-        document.getElementById('downloadOnlyBtn').addEventListener('click', async () => {
-            const records = await getAllRecords();
-            if (records.length === 0) return showMessage('No data to export.', 'info');
-            const confirmed = await showConfirm('Download Data', `You have ${records.length} entries. Do you want to download the Excel file?`);
-            if (confirmed) await performDownload();
-            else showMessage('Download cancelled.', 'info');
-        });
+            const encryptedRecords = await getAllRecords();
+            if (encryptedRecords.length === 0) {
+                return showMessage('No data to send online.', 'info');
+            }
+            
+            const confirmed = await showConfirm('Send Data Online', `You have ${encryptedRecords.length} entries. Do you want to send them to the server?`);
+            if (!confirmed) {
+                return showMessage('Send operation cancelled.', 'info');
+            }
+
+            showMessage('Preparing and sending data...', 'info', 10000);
+
+            let recordsToSend = [];
+            for (const rec of encryptedRecords) {
+                try {
+                    recordsToSend.push(await decryptData(rec.encryptedData));
+                } catch (e) {
+                    return showMessage('Could not decrypt data for sending. Incorrect password?', 'error');
+                }
+            }
+            
+            try {
+                const response = await fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(recordsToSend)
+                });
+
+                if (!response.ok) {
+                    // Try to get more info from the response body if available
+                    const errorData = await response.text();
+                    throw new Error(`Server responded with status ${response.status}: ${errorData}`);
+                }
+
+                const responseData = await response.json();
+                console.log('Server response:', responseData);
+                showMessage(`${recordsToSend.length} entries sent successfully!`, 'success');
+                
+                // Ask user if they want to clear the sent data
+                const clearConfirmed = await showConfirm('Clear Sent Data?', 'The data was sent successfully. Do you want to clear the sent records from this device?');
+                if (clearConfirmed) {
+                    await clearAllRecords();
+                    savedDataSection.classList.remove('visible');
+                    showMessage('Local data cleared.', 'success');
+                }
+
+            } catch (error) {
+                console.error('Error sending data online:', error);
+                showMessage(`Failed to send data: ${error.message}. Please check your connection and try again.`, 'error', 6000);
+            }
+        }
+
 
         // --- INITIALIZATION & EVENT LISTENERS ---
         document.getElementById('passwordSubmit').addEventListener('click', async () => {
@@ -896,7 +975,7 @@
                 
                 await initDb();
                 setTodaysDate();
-                setCurrentTime(); // Auto-set time on password submission
+                setCurrentTime();
                 updateRequiredVisuals();
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(
@@ -921,6 +1000,7 @@
         });
 
         document.getElementById('captureForm').addEventListener('submit', handleFormSubmit);
+
         document.getElementById('gpsBtn').onclick = () => {
             if (!navigator.geolocation) return showMessage('Geolocation not supported.', 'error');
             showMessage('Getting GPS...', 'info', 5000);
@@ -964,6 +1044,35 @@
         ['access', 'atHome', 'connected'].forEach(id => {
             document.getElementById(id).addEventListener('change', updateRequiredVisuals);
         });
+        
+        document.getElementById('downloadOnlyBtn').addEventListener('click', async () => {
+            const records = await getAllRecords();
+            if (records.length === 0) return showMessage('No data to export.', 'info');
+            const confirmed = await showConfirm('Download Data', `You have ${records.length} entries. Do you want to download the Excel file?`);
+            if (confirmed) await performDownload();
+            else showMessage('Download cancelled.', 'info');
+        });
+
+        // NEW: Event listener for Send Online button
+        document.getElementById('sendOnlineBtn').addEventListener('click', sendDataOnline);
+
+        // NEW: Event listener for ED/ECU selection to control Amp Limit
+        document.getElementById('edEcu').addEventListener('change', (e) => {
+            const ampLimitInput = document.getElementById('ampLimit');
+            const selectedValue = e.target.value;
+            
+            if (selectedValue === 'ED') {
+                ampLimitInput.value = 60;
+                ampLimitInput.readOnly = true;
+            } else if (selectedValue === 'ECU') {
+                ampLimitInput.value = 20;
+                ampLimitInput.readOnly = true;
+            } else {
+                ampLimitInput.value = '';
+                ampLimitInput.readOnly = false;
+            }
+        });
+
     </script>
 </body>
 </html>

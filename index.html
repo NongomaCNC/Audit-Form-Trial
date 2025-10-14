@@ -128,7 +128,6 @@
         #submitBtn { background: var(--primary-color); }
         #viewDataBtn { background: var(--info-color); }
         #downloadOnlyBtn { background: var(--cyan-color); color: #000; }
-        #sendOnlineBtn { background: var(--warning-color); color: #000; } /* New Button Style */
         #clearDataBtn { background: var(--danger-color); }
         #closeViewDataBtn { background: var(--secondary-color); }
 
@@ -148,7 +147,7 @@
             transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
             pointer-events: none;
             text-align: center;
-            white-space: nowrap;
+            white-space: pre-wrap; /* Allow line breaks */
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
         #message.show {
@@ -228,11 +227,12 @@
             margin-bottom: 1rem;
             font-size: 0.95rem;
             color: var(--secondary-color);
+            line-height: 1.5;
         }
         #dataCounts span {
             font-weight: bold;
             color: var(--dark-color);
-            margin: 0 10px;
+            margin: 0 5px;
         }
         #savedDataTableContainer {
             overflow-x: auto;
@@ -327,12 +327,12 @@
             <div class="field"><label for="owner">Owner</label><select id="owner" name="owner"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
             <div class="field"><label for="surname">Surname</label><input id="surname" name="surname" type="text"></div>
             <div class="field"><label for="name">Name</label><input id="name" name="name" type="text"></div>
-            <div class="field"><label for="idNo">ID No</label><input id="idNo" name="idNo" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="13 digits required" maxlength="13" minlength="13"></div>
+            <div class="field"><label for="idNo">ID No</label><input id="idNo" name="idNo" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="13 digits required" minlength="13" maxlength="13"></div>
             <div class="field"><label for="phoneCode">Phone Code</label><input id="phoneCode" name="phoneCode" type="tel" inputmode="numeric" pattern="[0-9]*" placeholder="e.g., +27"></div>
-             <div class="field"><label for="phoneNo">Phone No</label><input id="phoneNo" name="phoneNo" type="tel" inputmode="tel" placeholder="7 digits required" maxlength="7" minlength="7"></div>
+            <div class="field"><label for="phoneNo">Phone No</label><input id="phoneNo" name="phoneNo" type="tel" inputmode="tel" placeholder="7 digits required" minlength="7" maxlength="7"></div>
             <div class="field"><label for="normalVendor">Normal Vendor</label><select id="normalVendor" name="normalVendor"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
             <div class="field"><label for="recentVendor">Most Recent Vendor</label><input id="recentVendor" name="recentVendor" type="text"></div>
-            <div class="field"><label for="meterNo">Meter No</label><input id="meterNo" name="meterNo" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="11 digits required" maxlength="11" minlength="11"></div>
+            <div class="field"><label for="meterNo">Meter No</label><input id="meterNo" name="meterNo" type="text" inputmode="numeric" placeholder="11 digits required" minlength="11" maxlength="11"></div>
             <div class="field"><label for="split">Split</label><select id="split" name="split"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
             <div class="field"><label for="commonBaseMeter">Common/Non Common Base Meter</label><input id="commonBaseMeter" name="commonBaseMeter" type="text"></div>
             <div class="field"><label for="edEcu">ED/ECU</label><select id="edEcu" name="edEcu"><option value="">— Select —</option><option value="ED">ED</option><option value="ECU">ECU</option></select></div>
@@ -343,13 +343,15 @@
             <div class="field"><label for="supplyGroupCode">Supply Group Code</label><input id="supplyGroupCode" name="supplyGroupCode" type="text"></div>
             <div class="field"><label for="illegalConnection">Illegal Connection</label><select id="illegalConnection" name="illegalConnection"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
 	        <div class="field"><label for="meterTariffIndex">MeterTariffIndex</label><input id="meterTariffIndex" name="meterTariffIndex" type="text"></div>
-            <div class="field"><label for="magCard">Mag Card/Keypad</label><input id="magCard" name="magCard" type="text"></div>
+
+            <div class="field"><label for="magCard">Mag Card/Keypad</label><select id="magCard" name="magCard"><option value="">— Select —</option><option value="Mag Card">Mag Card</option><option value="Keypad">Keypad</option></select></div>
             <div class="field"><label for="stsOrProp">STS or Prop</label><input id="stsOrProp" name="stsOrProp" type="text"></div>
             <div class="field"><label for="tampered">Tampered</label><select id="tampered" name="tampered"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
             <div class="field"><label for="tamperMethod">Tamper Method</label><input id="tamperMethod" name="tamperMethod" type="text"></div>
             <div class="field"><label for="removed">Removed</label><select id="removed" name="removed"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
             <div class="field"><label for="tamperNotNo">Tamper Not No</label><input id="tamperNotNo" name="tamperNotNo" type="text"></div>
 	        <div class="field"><label for="tamperWaiver">TamperWaiver</label><input id="tamperWaiver" name="tamperWaiver" type="text"></div>
+
             <div class="field"><label for="cardTrip">Card Trip</label><select id="cardTrip" name="cardTrip"><option value="">— Select —</option><option value="Pass">Pass</option><option value="Fail">Fail</option></select></div>
             <div class="field"><label for="elTest">E/L Test</label><select id="elTest" name="elTest"><option value="">— Select —</option><option value="Pass">Pass</option><option value="Fail">Fail</option></select></div>
             <div class="field"><label for="newSupplyGroupCode">NewSupplyGroupCode</label><input id="newSupplyGroupCode" name="newSupplyGroupCode" type="text"></div>
@@ -370,7 +372,6 @@
                 <button type="submit" id="submitBtn">Save Data</button>
                 <button type="button" id="viewDataBtn">View Data</button>
                 <button type="button" id="downloadOnlyBtn">Download</button>
-                <button type="button" id="sendOnlineBtn">Send Online</button>
             </div>
         </form>
 
@@ -498,6 +499,7 @@
             return new Promise((resolve, reject) => {
                 const transaction = db.transaction([STORE_NAME], 'readwrite');
                 const store = transaction.objectStore(STORE_NAME);
+                // Correctly add only the encrypted data
                 const request = store.add({ encryptedData: encryptedRecord });
                 request.onsuccess = () => resolve();
                 request.onerror = (event) => reject(event.target.error);
@@ -508,6 +510,7 @@
             return new Promise((resolve, reject) => {
                 const transaction = db.transaction([STORE_NAME], 'readwrite');
                 const store = transaction.objectStore(STORE_NAME);
+                // The object for update must contain the keyPath
                 const request = store.put({ id: id, encryptedData: encryptedRecord });
                 request.onsuccess = () => resolve();
                 request.onerror = (event) => reject(event.target.error);
@@ -610,12 +613,14 @@
 
         // --- VALIDATION ---
         const alwaysRequiredFields = ['cnc', 'date', 'feederName', 'xformerNo'];
-        const conditionalRequiredFields = ['phoneCode', 'phoneNo', 'meterNo', 'supplyGroupCode', 'cardTrip', 'elTest', 'sealed', 'sealNo', 'latitude', 'longitude'];
+        const accessBasedRequiredFields = ['phoneCode', 'phoneNo', 'meterNo', 'supplyGroupCode', 'cardTrip', 'elTest', 'sealed', 'latitude', 'longitude'];
+        const sealedBasedRequiredFields = ['sealNo'];
+        const replacedBasedRequiredFields = ['mmfNo', 'newMeterNo', 'newMeterAmpLimit'];
         
         function updateRequiredVisuals() {
             const form = document.getElementById('captureForm');
-            const isConditionMet = ['access', 'atHome', 'connected'].some(id => form.elements[id].value === 'Yes');
             form.querySelectorAll('.required-star').forEach(star => star.remove());
+            
             const addStar = (element) => {
                 const label = element.closest('.field')?.querySelector('label');
                 if (label && !label.querySelector('.required-star')) {
@@ -625,9 +630,17 @@
                     label.appendChild(star);
                 }
             };
+            
             alwaysRequiredFields.forEach(id => addStar(form.elements[id]));
-            if (isConditionMet) {
-                conditionalRequiredFields.forEach(id => addStar(form.elements[id]));
+            
+            if (['access', 'atHome', 'connected'].some(id => form.elements[id].value === 'Yes')) {
+                accessBasedRequiredFields.forEach(id => addStar(form.elements[id]));
+            }
+            if (form.elements.sealed.value === 'Yes') {
+                sealedBasedRequiredFields.forEach(id => addStar(form.elements[id]));
+            }
+            if (form.elements.replaced.value === 'Yes') {
+                replacedBasedRequiredFields.forEach(id => addStar(form.elements[id]));
             }
         }
 
@@ -636,39 +649,50 @@
             const formData = new FormData(form);
             const errors = [];
             
-            // MODIFIED: Specific length and pattern checks
-            const idNo = formData.get('idNo').trim();
-            if (idNo && !/^\d{13}$/.test(idNo)) {
-                errors.push('ID No must be exactly 13 numeric digits.');
-            }
-
-            const phoneNo = formData.get('phoneNo').trim();
-            if (phoneNo && !/^\d{7}$/.test(phoneNo)) {
-                errors.push('Phone No must be exactly 7 numeric digits.');
-            }
-
-            const meterNo = formData.get('meterNo').trim();
-            if (meterNo && !/^\d{11}$/.test(meterNo)) {
-                errors.push('Meter No must be exactly 11 numeric digits.');
-            }
-            
-            const isConditionMet = ['access', 'atHome', 'connected'].some(id => form.elements[id].value === 'Yes');
             const checkField = (id, label) => {
                 if (!formData.get(id)?.trim()) {
                     errors.push(`${label} is required.`);
                 }
             };
-
+            
+            // Always required
             alwaysRequiredFields.forEach(id => {
                 const label = form.querySelector(`label[for="${id}"]`)?.textContent.replace('*','');
                 checkField(id, label);
             });
-
-            if (isConditionMet) {
-                conditionalRequiredFields.forEach(id => {
+            
+            // Conditional on Access/AtHome/Connected
+            if (['access', 'atHome', 'connected'].some(id => form.elements[id].value === 'Yes')) {
+                accessBasedRequiredFields.forEach(id => {
                     const label = form.querySelector(`label[for="${id}"]`)?.textContent.replace('*','').replace(/ \(.+\)/, '');
                     checkField(id, label);
                 });
+            }
+            
+            // Conditional on 'Sealed'
+            if (formData.get('sealed') === 'Yes') {
+                checkField('sealNo', 'Seal No');
+            }
+            
+            // Conditional on 'Replaced'
+            if (formData.get('replaced') === 'Yes') {
+                checkField('mmfNo', 'MMF No');
+                checkField('newMeterNo', 'New Meter No');
+                checkField('newMeterAmpLimit', 'New Meter Amp Limit');
+            }
+            
+            // Specific field format validation
+            const idNo = formData.get('idNo').trim();
+            if (idNo && idNo.length !== 13) {
+                errors.push('ID No. must be 13 digits.');
+            }
+            const phoneNo = formData.get('phoneNo').trim();
+            if (phoneNo && phoneNo.length !== 7) {
+                errors.push('Phone No. must be 7 digits.');
+            }
+            const meterNo = formData.get('meterNo').trim();
+            if (meterNo && meterNo.length !== 11) {
+                errors.push('Meter No. must be 11 digits.');
             }
 
             if (errors.length > 0) {
@@ -691,14 +715,16 @@
             delete data.id;
 
             if (data.date) {
-                const d = new Date(data.date);
-                data.date = d.toISOString().split('T')[0];
+                // data.date is in 'YYYY-MM-DD' format, change it to 'YYYY/MM/DD' for storage
+                data.date = data.date.replace(/-/g, '/');
             }
             
+            // Auto-capture the current time on form submission
             const now = new Date();
             const hours = String(now.getHours()).padStart(2, '0');
             const minutes = String(now.getMinutes()).padStart(2, '0');
             data.time = `${hours}:${minutes}`;
+
 
             try {
                 const encryptedData = await encryptData(data);
@@ -720,13 +746,10 @@
             document.getElementById('captureForm').reset();
             document.getElementById('recordId').value = '';
             document.getElementById('submitBtn').textContent = 'Save Data';
-            // Ensure Amp Limit is editable after reset
-            const ampLimitInput = document.getElementById('ampLimit');
-            ampLimitInput.readOnly = false;
-            ampLimitInput.style.backgroundColor = '';
-            ampLimitInput.style.cursor = '';
+            // Make amp limit editable again on reset
+            document.getElementById('ampLimit').readOnly = false;
             setTodaysDate();
-            setCurrentTime();
+            setCurrentTime(); // Auto-set time on reset
             updateRequiredVisuals();
             window.scrollTo(0, 0);
         }
@@ -742,20 +765,22 @@
                 for (const key in record) {
                     const el = form.elements[key];
                     if (el) {
-                        el.value = record[key];
+                        // For dates, convert YYYY/MM/DD back to YYYY-MM-DD for the date input
+                        if (key === 'date' && record[key]) {
+                            el.value = record[key].replace(/\//g, '-');
+                        } else {
+                            el.value = record[key];
+                        }
                     }
                 }
                 document.getElementById('recordId').value = id;
                 document.getElementById('submitBtn').textContent = 'Update Data';
                 updateRequiredVisuals();
                 savedDataSection.classList.remove('visible');
-                
-                // Manually trigger change event for edEcu to set Amp Limit correctly
-                document.getElementById('edEcu').dispatchEvent(new Event('change'));
-
                 window.scrollTo(0, 0);
                 showMessage('Editing entry. Scroll up to see the form.', 'info');
-            } catch (error) {
+            } catch (error)
+            {
                 showMessage(`Error loading data for editing: ${error.message}`, 'error');
             }
         }
@@ -803,12 +828,14 @@
 
                 let tamperedCount = 0;
                 let faultyCount = 0;
+                let illegalCount = 0;
                 records.forEach(rec => {
                     if (rec.tampered === 'Yes') tamperedCount++;
                     if (rec.meterFaulty === 'Yes') faultyCount++;
+                    if (rec.illegal === 'Yes') illegalCount++;
                 });
                 document.getElementById('dataCounts').innerHTML = 
-                    `Total Entries: <span>${records.length}</span> | Tampered: <span>${tamperedCount}</span> | Meter Faulty: <span>${faultyCount}</span>`;
+                    `Total: <span>${records.length}</span> | Tampered: <span>${tamperedCount}</span><br>Meter Faulty: <span>${faultyCount}</span> | Illegal: <span>${illegalCount}</span>`;
                 
                 const tableHeader = document.getElementById('savedTableHeader');
                 const tableBody = document.getElementById('savedTableBody');
@@ -898,66 +925,14 @@
                 return false;
             }
         }
-        
-        // NEW: Function to send data to an online server
-        async function sendDataOnline() {
-            // IMPORTANT: Replace this with your actual API endpoint
-            const API_ENDPOINT = 'https://api.example.com/submit-data';
 
-            const encryptedRecords = await getAllRecords();
-            if (encryptedRecords.length === 0) {
-                return showMessage('No data to send online.', 'info');
-            }
-            
-            const confirmed = await showConfirm('Send Data Online', `You have ${encryptedRecords.length} entries. Do you want to send them to the server?`);
-            if (!confirmed) {
-                return showMessage('Send operation cancelled.', 'info');
-            }
-
-            showMessage('Preparing and sending data...', 'info', 10000);
-
-            let recordsToSend = [];
-            for (const rec of encryptedRecords) {
-                try {
-                    recordsToSend.push(await decryptData(rec.encryptedData));
-                } catch (e) {
-                    return showMessage('Could not decrypt data for sending. Incorrect password?', 'error');
-                }
-            }
-            
-            try {
-                const response = await fetch(API_ENDPOINT, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(recordsToSend)
-                });
-
-                if (!response.ok) {
-                    // Try to get more info from the response body if available
-                    const errorData = await response.text();
-                    throw new Error(`Server responded with status ${response.status}: ${errorData}`);
-                }
-
-                const responseData = await response.json();
-                console.log('Server response:', responseData);
-                showMessage(`${recordsToSend.length} entries sent successfully!`, 'success');
-                
-                // Ask user if they want to clear the sent data
-                const clearConfirmed = await showConfirm('Clear Sent Data?', 'The data was sent successfully. Do you want to clear the sent records from this device?');
-                if (clearConfirmed) {
-                    await clearAllRecords();
-                    savedDataSection.classList.remove('visible');
-                    showMessage('Local data cleared.', 'success');
-                }
-
-            } catch (error) {
-                console.error('Error sending data online:', error);
-                showMessage(`Failed to send data: ${error.message}. Please check your connection and try again.`, 'error', 6000);
-            }
-        }
-
+        document.getElementById('downloadOnlyBtn').addEventListener('click', async () => {
+            const records = await getAllRecords();
+            if (records.length === 0) return showMessage('No data to export.', 'info');
+            const confirmed = await showConfirm('Download Data', `You have ${records.length} entries. Do you want to download the Excel file?`);
+            if (confirmed) await performDownload();
+            else showMessage('Download cancelled.', 'info');
+        });
 
         // --- INITIALIZATION & EVENT LISTENERS ---
         document.getElementById('passwordSubmit').addEventListener('click', async () => {
@@ -1000,7 +975,7 @@
         });
 
         document.getElementById('captureForm').addEventListener('submit', handleFormSubmit);
-
+        
         document.getElementById('gpsBtn').onclick = () => {
             if (!navigator.geolocation) return showMessage('Geolocation not supported.', 'error');
             showMessage('Getting GPS...', 'info', 5000);
@@ -1041,30 +1016,18 @@
             }
         });
         
-        ['access', 'atHome', 'connected'].forEach(id => {
+        // --- AUTOMATION & DYNAMIC UI LISTENERS ---
+        ['access', 'atHome', 'connected', 'sealed', 'replaced'].forEach(id => {
             document.getElementById(id).addEventListener('change', updateRequiredVisuals);
         });
-        
-        document.getElementById('downloadOnlyBtn').addEventListener('click', async () => {
-            const records = await getAllRecords();
-            if (records.length === 0) return showMessage('No data to export.', 'info');
-            const confirmed = await showConfirm('Download Data', `You have ${records.length} entries. Do you want to download the Excel file?`);
-            if (confirmed) await performDownload();
-            else showMessage('Download cancelled.', 'info');
-        });
 
-        // NEW: Event listener for Send Online button
-        document.getElementById('sendOnlineBtn').addEventListener('click', sendDataOnline);
-
-        // NEW: Event listener for ED/ECU selection to control Amp Limit
         document.getElementById('edEcu').addEventListener('change', (e) => {
             const ampLimitInput = document.getElementById('ampLimit');
-            const selectedValue = e.target.value;
-            
-            if (selectedValue === 'ED') {
+            const selection = e.target.value;
+            if (selection === 'ED') {
                 ampLimitInput.value = 60;
                 ampLimitInput.readOnly = true;
-            } else if (selectedValue === 'ECU') {
+            } else if (selection === 'ECU') {
                 ampLimitInput.value = 20;
                 ampLimitInput.readOnly = true;
             } else {
@@ -1072,6 +1035,32 @@
                 ampLimitInput.readOnly = false;
             }
         });
+
+        document.getElementById('magCard').addEventListener('change', (e) => {
+            const stsOrPropInput = document.getElementById('stsOrProp');
+            const selection = e.target.value;
+            if (selection === 'Mag Card') {
+                stsOrPropInput.value = 'Prop';
+            } else if (selection === 'Keypad') {
+                stsOrPropInput.value = 'STS';
+            } else {
+                stsOrPropInput.value = '';
+            }
+        });
+
+        function updateMeterFaultyStatus() {
+            const cardTrip = document.getElementById('cardTrip').value;
+            const elTest = document.getElementById('elTest').value;
+            const meterFaultySelect = document.getElementById('meterFaulty');
+
+            if (cardTrip === 'Fail' || elTest === 'Fail') {
+                meterFaultySelect.value = 'Yes';
+            } else if (cardTrip === 'Pass' && elTest === 'Pass') {
+                meterFaultySelect.value = 'No';
+            }
+        }
+        document.getElementById('cardTrip').addEventListener('change', updateMeterFaultyStatus);
+        document.getElementById('elTest').addEventListener('change', updateMeterFaultyStatus);
 
     </script>
 </body>

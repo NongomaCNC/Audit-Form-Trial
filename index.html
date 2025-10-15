@@ -942,45 +942,76 @@
         }
 
         async function handleEmailData() {
-            const encryptedRecords = await getAllRecords();
-            if (encryptedRecords.length === 0) {
-                showMessage('No data to email.', 'info');
-                return;
-            }
+  const encryptedRecords = await getAllRecords();
+  if (encryptedRecords.length === 0) {
+    showMessage('No data to email.', 'info');
+    return;
+  }
 
-            const confirmed = await showConfirm(
-                'Email Data', 
-                `You have ${encryptedRecords.length} entries. This will open your email client with data in the body. For large datasets (>100 records), this may fail. Do you want to proceed?`
-            );
-            if (!confirmed) {
-                showMessage('Email cancelled.', 'info');
-                return;
-            }
+  showMessage('Preparing Excel file for email...', 'info', 4000);
 
-            showMessage('Preparing data for email...', 'info', 4000);
+  try {
+    const records = [];
+    for (const rec of encryptedRecords) {
+      records.push(await decryptData(rec.encryptedData));
+    }
 
-            try {
-                const records = [];
-                for (const rec of encryptedRecords) {
-                    records.push(await decryptData(rec.encryptedData));
-                }
+    const excelHeaderMap = {
+      'featureName': 'FeatureName(Auditing/MeterChangeout)',
+      'xformerNo': 'XformerNo',
+      'newSupplyGroupCode': 'NewSupplyGroupCode',
+      'lat': 'Latitude',
+      'lon': 'Longitude',
+    };
+    const map = {};
+    formFieldOrder.forEach(key => {
+      map[key] = excelHeaderMap[key] || 
+        document.querySelector(`label[for="${key}"]`)?.textContent.replace('*','') || key;
+    });
 
-                const csvContent = convertToCSV(records);
-                const subject = `Field Data Export - ${new Date().toLocaleDateString("en-ZA")}`;
-                const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(csvContent)}`;
+    const formatted = records.map(rec => {
+      const obj = {};
+      for (const k in rec) {
+        if (k !== 'id') obj[map[k] || k] = rec[k];
+      }
+      return obj;
+    });
 
-                if (mailtoLink.length > 2000) {
-                    showMessage('Data is too large to email directly. Please use the Download button instead.', 'warning', 6000);
-                    return;
-                }
+    const ws = XLSX.utils.json_to_sheet(formatted, { header: formFieldOrder.map(k => map[k]) });
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'FieldData');
 
-                window.location.href = mailtoLink;
+    const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const file = new File([blob], 'Field_Data.xlsx', {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    });
 
-            } catch (e) {
-                showMessage('Could not decrypt all data for emailing. Incorrect password?', 'error');
-                console.error(e);
-            }
-        }
+    const shareData = {
+      title: 'Field Data Export',
+      text: 'Attached is the latest Field Data Excel export.',
+      files: [file],
+    };
+
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      showMessage('Opening sharing options...', 'info', 3000);
+      await navigator.share(shareData);
+      showMessage('Excel file shared successfully!', 'success');
+    } else {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'Field_Data.xlsx';
+      a.click();
+      URL.revokeObjectURL(url);
+      showMessage('Sharing not supported. Excel file downloaded instead.', 'warning', 6000);
+    }
+
+  } catch (e) {
+    showMessage('Could not decrypt or export data. Incorrect password?', 'error');
+    console.error(e);
+  }
+}
 
 
         // --- INITIALIZATION & EVENT LISTENERS ---

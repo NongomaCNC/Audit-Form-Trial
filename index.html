@@ -941,7 +941,14 @@
             return `${headers}\n${rows.join('\n')}`;
         }
 
-        async function handleEmailData() {
+        
+async function handleEmailData() {
+  // Ensure encryption key is present
+  if (!encryptionKey) {
+    showMessage('Please unlock the app with your data password before emailing.', 'error', 6000);
+    return;
+  }
+
   const encryptedRecords = await getAllRecords();
   if (encryptedRecords.length === 0) {
     showMessage('No data to email.', 'info');
@@ -952,10 +959,24 @@
 
   try {
     const records = [];
+    const failedIds = [];
     for (const rec of encryptedRecords) {
-      records.push(await decryptData(rec.encryptedData));
+      try {
+        const dec = await decryptData(rec.encryptedData);
+        dec.id = rec.id;
+        records.push(dec);
+      } catch (err) {
+        console.error('Decryption failed for record id:', rec.id, err);
+        failedIds.push(rec.id);
+      }
     }
 
+    if (failedIds.length > 0) {
+      showMessage(`Failed to decrypt records: ${failedIds.join(', ')}. Check password or data integrity.`, 'error', 8000);
+      return;
+    }
+
+    // Map field labels
     const excelHeaderMap = {
       'featureName': 'FeatureName(Auditing/MeterChangeout)',
       'xformerNo': 'XformerNo',
@@ -977,11 +998,20 @@
       return obj;
     });
 
+    // Generate Excel file using SheetJS
     const ws = XLSX.utils.json_to_sheet(formatted, { header: formFieldOrder.map(k => map[k]) });
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'FieldData');
 
-    const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    let wbout;
+    try {
+      wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    } catch (err) {
+      console.error('XLSX write failed', err);
+      showMessage('Failed to build Excel file.', 'error', 6000);
+      return;
+    }
+
     const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     const file = new File([blob], 'Field_Data.xlsx', {
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -998,6 +1028,7 @@
       await navigator.share(shareData);
       showMessage('Excel file shared successfully!', 'success');
     } else {
+      // Fallback for browsers without share support
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -1008,10 +1039,11 @@
     }
 
   } catch (e) {
-    showMessage('Could not decrypt or export data. Incorrect password?', 'error');
-    console.error(e);
+    console.error('Unexpected error during email/export:', e);
+    showMessage('Could not decrypt or export data. Check console for details.', 'error');
   }
 }
+
 
 
         // --- INITIALIZATION & EVENT LISTENERS ---

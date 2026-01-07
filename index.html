@@ -7,7 +7,6 @@
 
     <link rel="manifest" href="manifest.json">
     <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 
     <style>
         /* ---------- BASIC LAYOUT ---------- */
@@ -93,24 +92,6 @@
             cursor: not-allowed;
         }
 
-        /* NEW: Styles for input with a scan button */
-        .input-with-button {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .input-with-button input {
-            flex-grow: 1; /* Input takes available space */
-        }
-        .scan-btn {
-            flex-shrink: 0; /* Button does not shrink */
-            padding: 0.6rem 0.75rem;
-            font-size: 0.9rem;
-            min-width: auto;
-            background-color: var(--info-color);
-            margin: 0;
-        }
-
         /* ---------- BUTTONS ---------- */
         .actions {
             grid-column: 1 / -1;
@@ -149,11 +130,6 @@
         #downloadOnlyBtn { background: var(--cyan-color); color: #000; }
         #clearDataBtn { background: var(--danger-color); }
         #closeViewDataBtn { background: var(--secondary-color); }
-        /* NEW: Style for scanner close button */
-        #closeScannerBtn {
-            background-color: var(--danger-color);
-            margin-top: 1rem;
-        }
 
 
         /* ---------- MESSAGES & MODALS ---------- */
@@ -224,24 +200,6 @@
         }
         #confirmNoBtn {
             background-color: var(--secondary-color);
-        }
-
-        /* NEW: Styles for the scanner modal */
-        #scannerModal .modal-content {
-            width: 90%;
-            max-width: 400px;
-        }
-        #qr-reader {
-            width: 100%;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            overflow: hidden;
-            background: #000;
-        }
-        #qr-reader-results {
-            font-weight: bold;
-            color: var(--success-color);
-            margin-top: 0.5rem;
         }
 
         /* ---------- SAVED DATA SECTION ---------- */
@@ -338,24 +296,25 @@
         </div>
     </div>
 
-    <div id="scannerModal" class="modal-overlay">
-        <div class="modal-content">
-            <h2>Scan Code</h2>
-            <div id="qr-reader"></div>
-            <p id="qr-reader-results"></p>
-            <button id="closeScannerBtn">Close Scanner</button>
-        </div>
-    </div>
-
     <div class="main-content">
         <h1>Audit Data Capture</h1>
 
         <form id="captureForm" novalidate>
             <input type="hidden" id="recordId" name="id">
 
+            <div class="field"><label for="contractorName">Contractor Name or Other Source</label><input id="contractorName" name="contractorName" type="text"></div>
+            
             <div class="field"><label for="zone">Zone</label><input id="zone" name="zone" type="text" placeholder="e.g., Empangeni"></div>
             <div class="field"><label for="sector">Sector</label><input id="sector" name="sector" type="text" placeholder="e.g., Pongola"></div>
             <div class="field"><label for="cnc">CNC</label><input id="cnc" name="cnc" type="text"></div>
+            
+            <div class="field"><label for="removalCode">Removal Code</label><input id="removalCode" name="removalCode" type="text"></div>
+            <div class="field"><label for="supplyType">Supply type</label><input id="supplyType" name="supplyType" type="text"></div>
+            <div class="field"><label for="unitsOnNewMeter">Units On New Meter</label><input id="unitsOnNewMeter" name="unitsOnNewMeter" type="text"></div>
+            <div class="field"><label for="unitsOnRemovedMeter">Units on Removed Meter</label><input id="unitsOnRemovedMeter" name="unitsOnRemovedMeter" type="text"></div>
+            <div class="field"><label for="creditsToIssue">Credits to be issued</label><input id="creditsToIssue" name="creditsToIssue" type="text"></div>
+            <div class="field"><label for="worksOrderNo">Works Order No</label><input id="worksOrderNo" name="worksOrderNo" type="text"></div>
+
             <div class="field"><label for="onPrevious">On Previous</label><input id="onPrevious" name="onPrevious" type="text"></div>
  	        <div class="field"><label for="date">Date</label><input id="date" type="date" name="date"></div>
 	        <div class="field"><label for="time">Time</label><input id="time" type="time" name="time"></div>
@@ -363,6 +322,9 @@
             <div class="field"><label for="testerID">TesterID</label><input id="testerID" name="testerID" type="text"></div>
            
             <div class="field"><label for="feederName">Feeder Name</label><input id="feederName" name="feederName" type="text"></div>
+            
+            <div class="field"><label for="townshipId">Township ID</label><input id="townshipId" name="townshipId" type="text"></div>
+
             <div class="field"><label for="townshipName">Township Name</label><input id="townshipName" name="townshipName" type="text"></div>
             <div class="field"><label for="xformerNo">XformerNo</label><input id="xformerNo" name="xformerNo" type="text"></div>
             <div class="field"><label for="standNo">Stand No</label><input id="standNo" name="standNo" type="text"></div>
@@ -378,28 +340,12 @@
             <div class="field"><label for="owner">Owner</label><select id="owner" name="owner"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
             <div class="field"><label for="surname">Surname</label><input id="surname" name="surname" type="text"></div>
             <div class="field"><label for="name">Name</label><input id="name" name="name" type="text"></div>
-            
-            <div class="field">
-                <label for="idNo">ID No</label>
-                <div class="input-with-button">
-                    <input id="idNo" name="idNo" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="13 digits required" minlength="13" maxlength="13">
-                    <button type="button" id="scanIdNoBtn" class="scan-btn">Scan</button>
-                </div>
-            </div>
-
+            <div class="field"><label for="idNo">ID No</label><input id="idNo" name="idNo" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="13 digits required" minlength="13" maxlength="13"></div>
             <div class="field"><label for="phoneCode">Phone Code</label><input id="phoneCode" name="phoneCode" type="tel" inputmode="numeric" pattern="[0-9]*" placeholder="e.g., +27"></div>
             <div class="field"><label for="phoneNo">Phone No</label><input id="phoneNo" name="phoneNo" type="tel" inputmode="tel" placeholder="7 digits required" minlength="7" maxlength="7"></div>
             <div class="field"><label for="normalVendor">Normal Vendor</label><select id="normalVendor" name="normalVendor"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
             <div class="field"><label for="recentVendor">Most Recent Vendor</label><input id="recentVendor" name="recentVendor" type="text"></div>
-            
-            <div class="field">
-                <label for="meterNo">Meter No</label>
-                <div class="input-with-button">
-                    <input id="meterNo" name="meterNo" type="text" inputmode="numeric" placeholder="11 digits required" minlength="11" maxlength="11">
-                    <button type="button" id="scanMeterNoBtn" class="scan-btn">Scan</button>
-                </div>
-            </div>
-
+            <div class="field"><label for="meterNo">Meter No</label><input id="meterNo" name="meterNo" type="text" inputmode="numeric" placeholder="11 digits required" minlength="11" maxlength="11"></div>
             <div class="field"><label for="split">Split</label><select id="split" name="split"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
             <div class="field"><label for="commonBaseMeter">Common/Non Common Base Meter</label><input id="commonBaseMeter" name="commonBaseMeter" type="text"></div>
             <div class="field"><label for="edEcu">ED/ECU</label><select id="edEcu" name="edEcu"><option value="">— Select —</option><option value="ED">ED</option><option value="ECU">ECU</option></select></div>
@@ -479,12 +425,6 @@
         const STORE_NAME = 'records';
         let db;
         let encryptionKey;
-
-        // --- NEW: Scanner variables ---
-        let html5QrCode;
-        let currentScanTargetInput = null;
-        const scannerModal = document.getElementById('scannerModal');
-
 
         // --- CRYPTOGRAPHY FUNCTIONS ---
         async function getKey(password, salt) {
@@ -659,61 +599,6 @@
             });
         }
 
-        // --- NEW: Scanner Functions ---
-        async function startScanner(targetInput) {
-            currentScanTargetInput = targetInput;
-            scannerModal.classList.add('visible');
-            
-            // Configuration for the scanner
-            const config = {
-                fps: 10,
-                qrbox: { width: 250, height: 250 }
-            };
-            
-            // Success callback
-            const onScanSuccess = (decodedText, decodedResult) => {
-                console.log(`Code matched = ${decodedText}`, decodedResult);
-                if (currentScanTargetInput) {
-                    currentScanTargetInput.value = decodedText;
-                }
-                showMessage('Scan successful!', 'success');
-                stopScanner();
-            };
-
-            // Failure callback
-            const onScanFailure = (error) => {
-                // This fires every frame, so we'll just log it silently
-                // console.warn(`Code scan error = ${error}`);
-            };
-
-            try {
-                // Request camera permissions and start scanning
-                await html5QrCode.start(
-                    { facingMode: "environment" }, // Use the back camera
-                    config,
-                    onScanSuccess,
-                    onScanFailure
-                );
-            } catch (err) {
-                console.error("Could not start scanner:", err);
-                showMessage('Could not start camera. Please grant permission.', 'error');
-                stopScanner(); // Ensure modal is hidden even if start fails
-            }
-        }
-
-        function stopScanner() {
-            try {
-                if (html5QrCode && html5QrCode.isScanning) {
-                    html5QrCode.stop();
-                }
-            } catch (err) {
-                console.error("Error stopping scanner:", err);
-            }
-            scannerModal.classList.remove('visible');
-            currentScanTargetInput = null;
-        }
-
-
         // --- GPS & DATE/TIME ---
         function toDMS(dec, type) {
             const abs = Math.abs(dec);
@@ -823,7 +708,7 @@
             return true;
         }
 
-        // --- FORM & DATA HANDLING (NOW WITH ENCRYPTION) ---
+        // --- FORM & DATA HANDLING ---
         async function handleFormSubmit(e) {
             e.preventDefault();
             if (!validateForm()) return;
@@ -843,7 +728,6 @@
             const hours = String(now.getHours()).padStart(2, '0');
             const minutes = String(now.getMinutes()).padStart(2, '0');
             data.time = `${hours}:${minutes}`;
-
 
             try {
                 const encryptedData = await encryptData(data);
@@ -915,7 +799,7 @@
             }
         }
 
-        // --- EXPORT & VIEW DATA (NOW WITH DECRYPTION) ---
+        // --- EXPORT & VIEW DATA ---
         const savedDataSection = document.getElementById('savedDataSection');
         const formFieldOrder = Array.from(document.getElementById('captureForm').elements)
             .map(el => el.name)
@@ -938,7 +822,6 @@
                         records.push(decrypted);
                     } catch (e) {
                          showMessage('One or more records failed to decrypt. Incorrect password?', 'error');
-                         console.error("Decryption failure for record id:", rec.id);
                          return;
                     }
                 }
@@ -1016,6 +899,8 @@
                 'newSupplyGroupCode': 'NewSupplyGroupCode',
                 'lat': 'Latitude',
                 'lon': 'Longitude',
+                'contractorName': 'Contractor Name or Other Source',
+                'townshipId': 'Township ID'
             };
 
             const map = {};
@@ -1048,7 +933,6 @@
             if (records.length === 0) return showMessage('No data to export.', 'info');
             const confirmed = await showConfirm('Download Data', `You have ${records.length} entries. Do you want to download the Excel file?`);
             if (confirmed) await performDownload();
-            else showMessage('Download cancelled.', 'info');
         });
 
         // --- INITIALIZATION & EVENT LISTENERS ---
@@ -1069,28 +953,11 @@
                 setTodaysDate();
                 setCurrentTime();
                 updateRequiredVisuals();
-
-                // NEW: Initialize scanner and add listeners
-                try {
-                    html5QrCode = new Html5Qrcode("qr-reader");
-                    document.getElementById('scanIdNoBtn').addEventListener('click', () => {
-                        startScanner(document.getElementById('idNo'));
-                    });
-                    document.getElementById('scanMeterNoBtn').addEventListener('click', () => {
-                        startScanner(document.getElementById('meterNo'));
-                    });
-                    document.getElementById('closeScannerBtn').addEventListener('click', stopScanner);
-                } catch (e) {
-                    console.error("Failed to initialize scanner:", e);
-                    showMessage('Scanner functionality failed to initialize.', 'error');
-                }
-
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(
                         pos => {
                             document.getElementById('lat').value = toDMS(pos.coords.latitude, 'latitude');
                             document.getElementById('lon').value = toDMS(pos.coords.longitude, 'longitude');
-                            showMessage('Initial GPS acquired.', 'success', 2000);
                             updateRequiredVisuals();
                         },
                         err => showMessage('Could not get initial GPS.', 'info', 4000),
@@ -1098,8 +965,7 @@
                     );
                 }
             } catch (e) {
-                showMessage('Could not initialize encryption. See console.', 'error');
-                console.error(e);
+                showMessage('Could not initialize encryption.', 'error');
             }
         });
 
@@ -1137,19 +1003,14 @@
         });
 
         document.getElementById('clearDataBtn').addEventListener('click', async () => {
-            const confirmed = await showConfirm('Clear All Data', 'Are you sure you want to clear ALL saved data? This cannot be undone.');
+            const confirmed = await showConfirm('Clear All Data', 'Are you sure you want to clear ALL saved data?');
             if (confirmed) {
-                try {
-                    await clearAllRecords();
-                    savedDataSection.classList.remove('visible');
-                    showMessage('All saved data cleared successfully!', 'success');
-                } catch (error) {
-                    showMessage('Failed to clear all data.', 'error');
-                }
+                await clearAllRecords();
+                savedDataSection.classList.remove('visible');
+                showMessage('All saved data cleared successfully!', 'success');
             }
         });
         
-        // --- AUTOMATION & DYNAMIC UI LISTENERS ---
         ['access', 'atHome', 'connected', 'sealed', 'replaced'].forEach(id => {
             document.getElementById(id).addEventListener('change', updateRequiredVisuals);
         });

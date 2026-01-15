@@ -366,6 +366,7 @@
 	        
             <div class="field"><label for="cardTrip">Card Trip</label><select id="cardTrip" name="cardTrip"><option value="">— Select —</option><option value="Pass">Pass</option><option value="Fail">Fail</option></select></div>
             <div class="field"><label for="elTest">E/L Test</label><select id="elTest" name="elTest"><option value="">— Select —</option><option value="Pass">Pass</option><option value="Fail">Fail</option></select></div>
+            <div class="field"><label for="sgc">SGC</label><input id="sgc" name="sgc" type="text"></div>
             
             <div class="field"><label for="meterFaulty">Meter Faulty</label><select id="meterFaulty" name="meterFaulty"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
             <div class="field"><label for="replaced">Replaced</label><select id="replaced" name="replaced"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
@@ -605,9 +606,9 @@
             const deg = Math.floor(abs);
             const minF = (abs - deg) * 60;
             const min = Math.floor(minF);
-            const sec = ((minF - min) * 60).toFixed(3);
+            const_sec = ((minF - min) * 60).toFixed(3);
             let hemisphere = dec >= 0 ? (type === 'latitude' ? 'N' : 'E') : (type === 'latitude' ? 'S' : 'W');
-            return `${String(deg).padStart(2, '0')} ${String(min).padStart(2, '0')} ${sec.padStart(6, '0')} ${hemisphere}`;
+            return `${String(deg).padStart(2, '0')} ${String(min).padStart(2, '0')} ${const_sec.padStart(6, '0')} ${hemisphere}`;
         }
         
         function setTodaysDate() {
@@ -624,7 +625,8 @@
 
         // --- VALIDATION ---
         const alwaysRequiredFields = ['cnc', 'date', 'feederName', 'xformerNo'];
-        const accessBasedRequiredFields = ['phoneCode', 'phoneNo', 'meterNo', 'supplyGroupCode', 'cardTrip', 'elTest', 'sealed', 'latitude', 'longitude'];
+        // Added 'sgc' to accessBasedRequiredFields
+        const accessBasedRequiredFields = ['phoneCode', 'phoneNo', 'meterNo', 'supplyGroupCode', 'cardTrip', 'elTest', 'sgc', 'sealed', 'latitude', 'longitude'];
         const sealedBasedRequiredFields = ['sealNo'];
         const replacedBasedRequiredFields = ['mmfNo', 'newMeterNo', 'newMeterAmpLimit'];
         
@@ -904,7 +906,8 @@
                 'meterField': 'Meter Type',
                 'mmfNo': 'MeterChOutNo',
                 'newMeterCardTrip': 'CardTripNewMet',
-                'newMeterElTest': 'E/LTestNewMet'
+                'newMeterElTest': 'E/LTestNewMet',
+                'sgc': 'SGC'
             };
 
             const map = {};

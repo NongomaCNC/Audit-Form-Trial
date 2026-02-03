@@ -606,9 +606,9 @@
             const deg = Math.floor(abs);
             const minF = (abs - deg) * 60;
             const min = Math.floor(minF);
-            const_sec = ((minF - min) * 60).toFixed(3);
+            const sec = ((minF - min) * 60).toFixed(3);
             let hemisphere = dec >= 0 ? (type === 'latitude' ? 'N' : 'E') : (type === 'latitude' ? 'S' : 'W');
-            return `${String(deg).padStart(2, '0')} ${String(min).padStart(2, '0')} ${const_sec.padStart(6, '0')} ${hemisphere}`;
+            return `${String(deg).padStart(2, '0')} ${String(min).padStart(2, '0')} ${sec.padStart(6, '0')} ${hemisphere}`;
         }
         
         function setTodaysDate() {
@@ -625,8 +625,7 @@
 
         // --- VALIDATION ---
         const alwaysRequiredFields = ['cnc', 'date', 'feederName', 'xformerNo'];
-        // Added 'sgc' to accessBasedRequiredFields
-        const accessBasedRequiredFields = ['phoneCode', 'phoneNo', 'meterNo', 'supplyGroupCode', 'cardTrip', 'elTest', 'sgc', 'sealed', 'latitude', 'longitude'];
+        const accessBasedRequiredFields = ['phoneCode', 'phoneNo', 'meterNo', 'supplyGroupCode', 'cardTrip', 'elTest', 'sgc', 'sealed', 'Latitude', 'Longitude'];
         const sealedBasedRequiredFields = ['sealNo'];
         const replacedBasedRequiredFields = ['mmfNo', 'newMeterNo', 'newMeterAmpLimit'];
         
@@ -635,6 +634,7 @@
             form.querySelectorAll('.required-star').forEach(star => star.remove());
             
             const addStar = (element) => {
+                if (!element) return;
                 const label = element.closest('.field')?.querySelector('label');
                 if (label && !label.querySelector('.required-star')) {
                     const star = document.createElement('span');
@@ -782,8 +782,7 @@
                 savedDataSection.classList.remove('visible');
                 window.scrollTo(0, 0);
                 showMessage('Editing entry. Scroll up to see the form.', 'info');
-            } catch (error)
-            {
+            } catch (error) {
                 showMessage(`Error loading data for editing: ${error.message}`, 'error');
             }
         }
@@ -1066,4 +1065,3 @@
     </script>
 </body>
 </html>
-

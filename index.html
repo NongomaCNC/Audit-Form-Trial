@@ -877,7 +877,7 @@
             }
         }
         
-        async function performDownload() {
+async function performDownload() {
             const encryptedRecords = await getAllRecords();
             if (encryptedRecords.length === 0) {
                 showMessage('No data to export.', 'info');
@@ -894,35 +894,42 @@
                 }
             }
 
+            // This map ensures that the Excel headers match the labels from your HTML 
+            // but the underlying keys match your field 'name' attributes exactly.
             const excelHeaderMap = {
-                'featureName': 'FeatureName(Auditing/MeterChangeout)',
+                'featureName': 'FeatureName',
                 'xformerNo': 'XformerNo',
                 'newSupplyGroupCode': 'New Supply Group Code',
-                'lat': 'Latitude',
-                'lon': 'Longitude',
+                'Latitude': 'Latitude', // Matches 'name' attribute
+                'Longitude': 'Longitude', // Matches 'name' attribute
                 'contractorName': 'Contractor Name or Other Source',
-                'townshipId': 'Township ID',
-                'meterField': 'Meter Type',
+                'townshipId': 'TownshipID',
+                'meterField': 'MeterType',
                 'mmfNo': 'MeterChOutNo',
                 'newMeterCardTrip': 'CardTripNewMet',
                 'newMeterElTest': 'E/LTestNewMet',
-                'sgc': 'SGC'
+                'sgc': 'SupplyGroupCode'
             };
 
             const map = {};
             formFieldOrder.forEach(key => {
-                map[key] = excelHeaderMap[key] || document.querySelector(`label[for="${key}"]`)?.textContent.replace('*','') || key;
+                // Use the map above, or find the label text, or fallback to the field name
+                map[key] = excelHeaderMap[key] || 
+                           document.querySelector(`label[for="${document.getElementsByName(key)[0]?.id}"]`)?.textContent.replace('*','') || 
+                           key;
             });
+
             const formatted = records.map(rec => {
                 const obj = {};
-                for (const k in rec) {
-                    if (k !== 'id') obj[map[k] || k] = rec[k];
-                }
+                formFieldOrder.forEach(key => {
+                    // This ensures the data is added in the exact order of the form fields
+                    obj[map[key]] = rec[key] || '';
+                });
                 return obj;
             });
 
             try {
-                const ws = XLSX.utils.json_to_sheet(formatted, { header: formFieldOrder.map(k => map[k]) });
+                const ws = XLSX.utils.json_to_sheet(formatted);
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, 'FieldData');
                 XLSX.writeFile(wb, 'Field_Data.xlsx');
@@ -934,7 +941,9 @@
             }
         }
 
-        document.getElementById('downloadOnlyBtn').addEventListener('click', async () => {
+		
+
+      document.getElementById('downloadOnlyBtn').addEventListener('click', async () => {
             const records = await getAllRecords();
             if (records.length === 0) return showMessage('No data to export.', 'info');
             const confirmed = await showConfirm('Download Data', `You have ${records.length} entries. Do you want to download the Excel file?`);
@@ -1065,3 +1074,4 @@
     </script>
 </body>
 </html>
+
